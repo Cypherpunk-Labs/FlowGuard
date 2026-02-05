@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
+    "simple-git": "^3.19.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

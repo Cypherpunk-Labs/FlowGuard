@@ -1,0 +1,303 @@
+import * as path from 'path';
+import { Spec, SpecStatus } from '../models/Spec';
+import { Ticket, TicketStatus, Priority } from '../models/Ticket';
+import { Execution, ExecutionStatus, AgentType } from '../models/Execution';
+import { parseFrontmatter, serializeFrontmatter } from '../parsers/frontmatter';
+import { fileExists, readFile, writeFile, listFiles, deleteFile, ensureDirectory } from './fileSystem';
+import {
+  STORAGE_DIRS,
+  getSpecFilename,
+  getTicketFilename,
+  getExecutionFilename,
+  getVerificationFilename,
+} from './constants';
+import {
+  ArtifactType,
+  StorageError,
+  NotFoundError,
+  ValidationError,
+} from './types';
+import { log, error } from '../../utils/logger';
+
+export class ArtifactStorage {
+  private flowguardRoot: string;
+
+  constructor(workspaceRoot: string) {
+    this.flowguardRoot = path.join(workspaceRoot, '.flowguard');
+  }
+
+  async initialize(): Promise<void> {
+    await ensureDirectory(this.flowguardRoot);
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.SPECS));
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.TICKETS));
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.EXECUTIONS));
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.VERIFICATIONS));
+    log('ArtifactStorage initialized');
+  }
+
+  private getSpecsDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.SPECS);
+  }
+
+  private getTicketsDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.TICKETS);
+  }
+
+  private getExecutionsDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.EXECUTIONS);
+  }
+
+  private getVerificationsDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.VERIFICATIONS);
+  }
+
+  private getSpecPath(id: string): string {
+    return path.join(this.getSpecsDir(), getSpecFilename(id));
+  }
+
+  private getTicketPath(id: string): string {
+    return path.join(this.getTicketsDir(), getTicketFilename(id));
+  }
+
+  private getExecutionPath(id: string): string {
+    return path.join(this.getExecutionsDir(), getExecutionFilename(id));
+  }
+
+  private getVerificationPath(id: string): string {
+    return path.join(this.getVerificationsDir(), getVerificationFilename(id));
+  }
+
+  async saveSpec(spec: Spec): Promise<void> {
+    const filePath = this.getSpecPath(spec.id);
+    const frontmatter = {
+      id: spec.id,
+      epicId: spec.epicId,
+      title: spec.title,
+      status: spec.status,
+      createdAt: spec.createdAt.toISOString(),
+      updatedAt: spec.updatedAt.toISOString(),
+      author: spec.author,
+      tags: spec.tags,
+    };
+    const markdown = serializeFrontmatter(frontmatter, spec.content);
+    await writeFile(filePath, markdown);
+    log(`Saved spec: ${spec.id}`);
+  }
+
+  async loadSpec(id: string): Promise<Spec> {
+    const filePath = this.getSpecPath(id);
+    const content = await readFile(filePath);
+    const { data, content: markdownContent } = parseFrontmatter<Record<string, unknown>>(content, { validate: true });
+
+    if (!data.id || !data.epicId || !data.title) {
+      throw new ValidationError('Spec is missing required fields: id, epicId, or title');
+    }
+
+    const spec: Spec = {
+      id: data.id as string,
+      epicId: data.epicId as string,
+      title: data.title as string,
+      status: data.status as SpecStatus,
+      createdAt: new Date(data.createdAt as string),
+      updatedAt: new Date(data.updatedAt as string),
+      author: data.author as string,
+      tags: (data.tags as string[]) || [],
+      content: markdownContent,
+    };
+
+    return spec;
+  }
+
+  async listSpecs(epicId?: string): Promise<Spec[]> {
+    const files = await listFiles(this.getSpecsDir(), /^spec-.+\.md$/);
+    const specs: Spec[] = [];
+
+    for (const file of files) {
+      const id = file.replace('spec-', '').replace('.md', '');
+      try {
+        const spec = await this.loadSpec(id);
+        if (!epicId || spec.epicId === epicId) {
+          specs.push(spec);
+        }
+      } catch (err) {
+        error(`Failed to load spec ${id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    return specs;
+  }
+
+  async deleteSpec(id: string): Promise<void> {
+    const filePath = this.getSpecPath(id);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      throw new NotFoundError('spec', id);
+    }
+    await deleteFile(filePath);
+    log(`Deleted spec: ${id}`);
+  }
+
+  async saveTicket(ticket: Ticket): Promise<void> {
+    const filePath = this.getTicketPath(ticket.id);
+    const frontmatter = {
+      id: ticket.id,
+      epicId: ticket.epicId,
+      specId: ticket.specId,
+      title: ticket.title,
+      status: ticket.status,
+      priority: ticket.priority,
+      assignee: ticket.assignee,
+      estimatedEffort: ticket.estimatedEffort,
+      createdAt: ticket.createdAt.toISOString(),
+      updatedAt: ticket.updatedAt.toISOString(),
+      tags: ticket.tags,
+    };
+    const markdown = serializeFrontmatter(frontmatter, ticket.content);
+    await writeFile(filePath, markdown);
+    log(`Saved ticket: ${ticket.id}`);
+  }
+
+  async loadTicket(id: string): Promise<Ticket> {
+    const filePath = this.getTicketPath(id);
+    const content = await readFile(filePath);
+    const { data, content: markdownContent } = parseFrontmatter<Record<string, unknown>>(content, { validate: true });
+
+    if (!data.id || !data.epicId || !data.title) {
+      throw new ValidationError('Ticket is missing required fields: id, epicId, or title');
+    }
+
+    const ticket: Ticket = {
+      id: data.id as string,
+      epicId: data.epicId as string,
+      specId: data.specId as string,
+      title: data.title as string,
+      status: data.status as TicketStatus,
+      priority: data.priority as Priority,
+      assignee: data.assignee as string | undefined,
+      estimatedEffort: data.estimatedEffort as string | undefined,
+      createdAt: new Date(data.createdAt as string),
+      updatedAt: new Date(data.updatedAt as string),
+      tags: (data.tags as string[]) || [],
+      content: markdownContent,
+    };
+
+    return ticket;
+  }
+
+  async listTickets(epicId?: string, specId?: string): Promise<Ticket[]> {
+    const files = await listFiles(this.getTicketsDir(), /^ticket-.+\.md$/);
+    const tickets: Ticket[] = [];
+
+    for (const file of files) {
+      const id = file.replace('ticket-', '').replace('.md', '');
+      try {
+        const ticket = await this.loadTicket(id);
+        if ((!epicId || ticket.epicId === epicId) && (!specId || ticket.specId === specId)) {
+          tickets.push(ticket);
+        }
+      } catch (err) {
+        error(`Failed to load ticket ${id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    return tickets;
+  }
+
+  async deleteTicket(id: string): Promise<void> {
+    const filePath = this.getTicketPath(id);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      throw new NotFoundError('ticket', id);
+    }
+    await deleteFile(filePath);
+    log(`Deleted ticket: ${id}`);
+  }
+
+  async saveExecution(execution: Execution): Promise<void> {
+    const filePath = this.getExecutionPath(execution.id);
+    const frontmatter = {
+      id: execution.id,
+      epicId: execution.epicId,
+      specIds: execution.specIds,
+      ticketIds: execution.ticketIds,
+      agentType: execution.agentType,
+      handoffPrompt: execution.handoffPrompt,
+      status: execution.status,
+      startedAt: execution.startedAt.toISOString(),
+      completedAt: execution.completedAt?.toISOString(),
+      results: execution.results,
+    };
+    const markdown = serializeFrontmatter(frontmatter, '');
+    await writeFile(filePath, markdown);
+    log(`Saved execution: ${execution.id}`);
+  }
+
+  async loadExecution(id: string): Promise<Execution> {
+    const filePath = this.getExecutionPath(id);
+    const content = await readFile(filePath);
+    const { data } = parseFrontmatter<Record<string, unknown>>(content, { validate: true });
+
+    if (!data.id || !data.epicId) {
+      throw new ValidationError('Execution is missing required fields: id or epicId');
+    }
+
+    const execution: Execution = {
+      id: data.id as string,
+      epicId: data.epicId as string,
+      specIds: (data.specIds as string[]) || [],
+      ticketIds: (data.ticketIds as string[]) || [],
+      agentType: data.agentType as AgentType,
+      handoffPrompt: data.handoffPrompt as string,
+      status: data.status as ExecutionStatus,
+      startedAt: new Date(data.startedAt as string),
+      completedAt: data.completedAt ? new Date(data.completedAt as string) : undefined,
+      results: data.results as Execution['results'],
+    };
+
+    return execution;
+  }
+
+  async listExecutions(epicId?: string): Promise<Execution[]> {
+    const files = await listFiles(this.getExecutionsDir(), /^execution-.+\.md$/);
+    const executions: Execution[] = [];
+
+    for (const file of files) {
+      const id = file.replace('execution-', '').replace('.md', '');
+      try {
+        const execution = await this.loadExecution(id);
+        if (!epicId || execution.epicId === epicId) {
+          executions.push(execution);
+        }
+      } catch (err) {
+        error(`Failed to load execution ${id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    return executions;
+  }
+
+  async deleteExecution(id: string): Promise<void> {
+    const filePath = this.getExecutionPath(id);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      throw new NotFoundError('execution', id);
+    }
+    await deleteFile(filePath);
+    log(`Deleted execution: ${id}`);
+  }
+
+  getArtifactPath(type: ArtifactType, id: string): string {
+    switch (type) {
+      case 'spec':
+        return this.getSpecPath(id);
+      case 'ticket':
+        return this.getTicketPath(id);
+      case 'execution':
+        return this.getExecutionPath(id);
+      case 'verification':
+        return this.getVerificationPath(id);
+      default:
+        throw new StorageError(`Unknown artifact type: ${type}`, 'filesystem', { operation: 'getArtifactPath' });
+    }
+  }
+}
