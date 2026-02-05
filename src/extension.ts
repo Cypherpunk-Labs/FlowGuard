@@ -1,10 +1,68 @@
 import * as vscode from 'vscode';
+import { ArtifactStorage } from './core/storage/ArtifactStorage';
+import { createProvider } from './llm/ProviderFactory';
+import { getLLMConfig } from './llm/config';
+import { LLMProviderType } from './llm/types';
+import { ClarificationEngine, SpecGenerator, CodebaseExplorer } from './planning';
 
 let extensionPath: string;
+let storage: ArtifactStorage | null = null;
+let clarificationEngine: ClarificationEngine | null = null;
+let specGenerator: SpecGenerator | null = null;
+let codebaseExplorer: CodebaseExplorer | null = null;
 
-export function activate(context: vscode.ExtensionContext): void {
+function getProviderType(): LLMProviderType {
+  try {
+    const config = vscode.workspace.getConfiguration('flowguard.llm');
+    const provider: string | undefined = config.get('provider');
+    if (provider && ['openai', 'anthropic', 'local'].includes(provider)) {
+      return provider as LLMProviderType;
+    }
+  } catch {
+    // Ignore
+  }
+
+  if (process.env.OPENAI_API_KEY) return 'openai';
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+  
+  return 'openai';
+}
+
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   extensionPath = context.extensionPath;
   console.log('FlowGuard extension activated');
+
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!workspaceRoot) {
+    vscode.window.showErrorMessage('FlowGuard requires an open workspace');
+    return;
+  }
+
+  try {
+    storage = new ArtifactStorage(workspaceRoot);
+    await storage.initialize();
+
+    const providerType = getProviderType();
+    const llmConfig = getLLMConfig();
+    const provider = createProvider(providerType, llmConfig);
+
+    clarificationEngine = new ClarificationEngine(provider);
+    codebaseExplorer = new CodebaseExplorer(workspaceRoot);
+    specGenerator = new SpecGenerator(provider, codebaseExplorer);
+
+    context.workspaceState.update('storage', storage);
+    context.workspaceState.update('specGenerator', specGenerator);
+    context.workspaceState.update('clarificationEngine', clarificationEngine);
+    context.workspaceState.update('codebaseExplorer', codebaseExplorer);
+
+    const outputChannel = vscode.window.createOutputChannel('FlowGuard');
+    outputChannel.appendLine('FlowGuard initialized successfully');
+    outputChannel.show();
+
+  } catch (error) {
+    console.error('Failed to initialize FlowGuard:', error);
+    vscode.window.showErrorMessage(`FlowGuard initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 
   const disposables: vscode.Disposable[] = [];
 
@@ -17,4 +75,20 @@ export function deactivate(): void {
 
 export function getExtensionPath(): string {
   return extensionPath;
+}
+
+export function getStorage(): ArtifactStorage | null {
+  return storage;
+}
+
+export function getClarificationEngine(): ClarificationEngine | null {
+  return clarificationEngine;
+}
+
+export function getSpecGenerator(): SpecGenerator | null {
+  return specGenerator;
+}
+
+export function getCodebaseExplorer(): CodebaseExplorer | null {
+  return codebaseExplorer;
 }

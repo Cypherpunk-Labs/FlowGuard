@@ -14,7 +14,34 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "contributes": {},
+  "contributes": {
+    "configuration": {
+      "title": "FlowGuard",
+      "properties": {
+        "flowguard.llm.provider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "local"],
+          "default": "openai",
+          "description": "LLM provider to use"
+        },
+        "flowguard.llm.model": {
+          "type": "string",
+          "description": "Model name (e.g., gpt-4-turbo-preview, claude-3-5-sonnet-20241022)"
+        },
+        "flowguard.llm.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for LLM generation"
+        },
+        "flowguard.llm.baseUrl": {
+          "type": "string",
+          "description": "Base URL for local LLM provider"
+        }
+      }
+    }
+  },
   "scripts": {
     "compile": "webpack --mode production",
     "watch": "webpack --mode development --watch",
@@ -25,7 +52,13 @@
   "dependencies": {
     "gray-matter": "^4.0.3",
     "simple-git": "^3.19.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "openai": "^4.0.0",
+    "@anthropic-ai/sdk": "^0.20.0",
+    "tree-sitter": "^0.21.0",
+    "tree-sitter-typescript": "^0.21.0",
+    "tree-sitter-javascript": "^0.21.0",
+    "tree-sitter-python": "^0.21.0"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
