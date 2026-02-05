@@ -1,0 +1,38 @@
+{
+  "name": "flowguard",
+  "publisher": "mkemp",
+  "displayName": "FlowGuard - AI-Powered Development Workflow Manager",
+  "description": "AI-powered development workflow manager for epic/spec/ticket management",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {},
+  "scripts": {
+    "compile": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "package": "webpack --mode production --define process.env.NODE_ENV='\"production\"' && npx vsce package"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0",
+    "ts-loader": "^9.0.0"
+  }
+}
