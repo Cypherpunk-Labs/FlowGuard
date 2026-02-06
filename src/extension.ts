@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { ArtifactStorage } from './core/storage/ArtifactStorage';
 import { EpicMetadataManager } from './core/storage/EpicMetadataManager';
+import { configurationManager } from './core/config/ConfigurationManager';
+import { secureStorage } from './core/config/SecureStorage';
+import { configurationWatcher } from './core/config/ConfigurationWatcher';
+import { configurationMigration } from './core/config/migration';
 import { SidebarProvider } from './ui/sidebar/SidebarProvider';
 import { SpecEditorProvider } from './ui/editors/SpecEditorProvider';
 import { TicketEditorProvider } from './ui/editors/TicketEditorProvider';
@@ -15,6 +19,7 @@ import { ReferenceResolver } from './core/references/ReferenceResolver';
 import { VerificationEngine } from './verification/VerificationEngine';
 import { HandoffGenerator } from './handoff';
 import { registerCommands, CommandContext } from './commands';
+import { setLogLevel } from './utils/logger';
 
 let extensionPath: string;
 let storage: ArtifactStorage | null = null;
@@ -33,23 +38,6 @@ let handoffGenerator: HandoffGenerator | null = null;
 let gitHelper: GitHelper | null = null;
 let referenceResolver: ReferenceResolver | null = null;
 
-function getProviderType(): LLMProviderType {
-  try {
-    const config = vscode.workspace.getConfiguration('flowguard.llm');
-    const provider: string | undefined = config.get('provider');
-    if (provider && ['openai', 'anthropic', 'local'].includes(provider)) {
-      return provider as LLMProviderType;
-    }
-  } catch {
-    // Ignore
-  }
-
-  if (process.env.OPENAI_API_KEY) return 'openai';
-  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
-
-  return 'openai';
-}
-
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   extensionPath = context.extensionPath;
   console.log('FlowGuard extension activated');
@@ -61,14 +49,37 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }
 
   try {
+    configurationManager.initialize(context);
+    secureStorage.initialize(context);
+    configurationMigration.initialize(context.globalState);
+    
+    const migrationResult = await configurationMigration.runMigrations();
+    if (migrationResult.migratedItems.length > 0) {
+      console.log('Configuration migration completed:', migrationResult.migratedItems.join(', '));
+    }
+    if (!migrationResult.success) {
+      console.error('Configuration migration errors:', migrationResult.errors.join(', '));
+    }
+
+    configurationWatcher.initialize();
+
+    const generalConfig = configurationManager.getGeneralConfig();
+    setLogLevel(generalConfig.logLevel);
+    if (generalConfig.showWelcomeOnStartup) {
+      const outputChannel = vscode.window.createOutputChannel('FlowGuard');
+      outputChannel.appendLine('FlowGuard initialized successfully');
+      outputChannel.show();
+    }
+
     storage = new ArtifactStorage(workspaceRoot);
     await storage.initialize();
 
     epicMetadataManager = new EpicMetadataManager(workspaceRoot);
 
-    const providerType = getProviderType();
-    const llmConfig = getLLMConfig();
-    const provider = createProvider(providerType, llmConfig);
+    const llmConfig = configurationManager.getLLMConfig();
+    const apiKey = await secureStorage.getApiKeyWithFallback(llmConfig.provider) || '';
+    const providerConfig = { ...llmConfig, apiKey };
+    const provider = createProvider(llmConfig.provider, providerConfig);
 
     clarificationEngine = new ClarificationEngine(provider);
     codebaseExplorer = new CodebaseExplorer(workspaceRoot);
@@ -171,22 +182,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     registerCommands(context, commandContext);
 
-    const outputChannel = vscode.window.createOutputChannel('FlowGuard');
-    outputChannel.appendLine('FlowGuard initialized successfully');
-    outputChannel.show();
-
   } catch (error) {
     console.error('Failed to initialize FlowGuard:', error);
     vscode.window.showErrorMessage(`FlowGuard initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  const disposables: vscode.Disposable[] = [];
-
-  context.subscriptions.push(...disposables);
+  context.subscriptions.push(configurationManager);
+  context.subscriptions.push(configurationWatcher);
 }
 
 export function deactivate(): void {
   console.log('FlowGuard extension deactivated');
+  configurationManager.dispose();
+  configurationWatcher.dispose();
 }
 
 export function getExtensionPath(): string {

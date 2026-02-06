@@ -22,7 +22,7 @@
           "type": "string",
           "enum": ["openai", "anthropic", "local"],
           "default": "openai",
-          "description": "LLM provider to use"
+          "description": "LLM provider to use. Can be overridden by FLOWGUARD_LLM_PROVIDER environment variable."
         },
         "flowguard.llm.model": {
           "type": "string",
@@ -33,11 +33,147 @@
           "default": 0.7,
           "minimum": 0,
           "maximum": 2,
-          "description": "Temperature for LLM generation"
+          "description": "Temperature for LLM generation. Higher values produce more creative outputs."
         },
         "flowguard.llm.baseUrl": {
           "type": "string",
-          "description": "Base URL for local LLM provider"
+          "description": "Base URL for local LLM provider. Only applicable when provider is 'local'."
+        },
+        "flowguard.llm.apiKey": {
+          "type": "string",
+          "description": "API key for LLM provider. For security, it's recommended to use SecretStorage via the 'Enter API Key' command instead.",
+          "scope": "application",
+          "markdownDescription": "API key for the LLM provider. **Recommended:** Use the `FlowGuard: Enter API Key` command to store securely in VS Code SecretStorage instead of setting this directly."
+        },
+        "flowguard.llm.maxTokens": {
+          "type": "integer",
+          "default": 4096,
+          "minimum": 100,
+          "maximum": 128000,
+          "description": "Maximum number of tokens for LLM responses. Higher values allow longer responses but increase latency."
+        },
+        "flowguard.llm.timeout": {
+          "type": "integer",
+          "default": 60000,
+          "minimum": 5000,
+          "maximum": 300000,
+          "description": "Timeout for LLM requests in milliseconds."
+        },
+        "flowguard.llm.retryAttempts": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Number of retry attempts for failed LLM requests."
+        },
+        "flowguard.llm.streamResponses": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable streaming responses from LLM for faster initial output."
+        },
+        "flowguard.templates.defaultAgent": {
+          "type": "string",
+          "enum": ["cursor", "claude", "windsurf", "cline", "aider", "custom"],
+          "default": "cursor",
+          "description": "Default agent template to use for handoff documents."
+        },
+        "flowguard.templates.customPath": {
+          "type": "string",
+          "description": "Path to custom template directory. Templates in this directory will override defaults."
+        },
+        "flowguard.templates.includeCodebaseContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include codebase context in handoff documents."
+        },
+        "flowguard.templates.maxCodebaseFiles": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Maximum number of files to include as codebase context in templates."
+        },
+        "flowguard.editor.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save edits in FlowGuard editors."
+        },
+        "flowguard.editor.autoSaveDelay": {
+          "type": "integer",
+          "default": 30000,
+          "minimum": 1000,
+          "maximum": 300000,
+          "description": "Delay in milliseconds before auto-saving edited files."
+        },
+        "flowguard.editor.enableDiagramPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable preview diagrams in editor views."
+        },
+        "flowguard.codebase.maxFilesToScan": {
+          "type": "integer",
+          "default": 1000,
+          "minimum": 100,
+          "maximum": 10000,
+          "description": "Maximum number of files to scan when analyzing codebase."
+        },
+        "flowguard.codebase.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["node_modules", "dist", "build", ".git", ".flowguard"],
+          "description": "Glob patterns to exclude from codebase scanning."
+        },
+        "flowguard.codebase.includePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["**/*.ts", "**/*.js", "**/*.py", "**/*.java", "**/*.go", "**/*.rs"],
+          "description": "Glob patterns to include in codebase scanning."
+        },
+        "flowguard.codebase.enableIncrementalScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable incremental scanning to improve performance on subsequent scans."
+        },
+        "flowguard.verification.autoVerifyOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run verification when files are saved."
+        },
+        "flowguard.verification.minimumSeverity": {
+          "type": "string",
+          "enum": ["Critical", "High", "Medium", "Low"],
+          "default": "Medium",
+          "description": "Minimum severity level to report in verification results."
+        },
+        "flowguard.verification.enableAutoFix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic fixing of verified issues when possible."
+        },
+        "flowguard.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable anonymous telemetry to help improve FlowGuard."
+        },
+        "flowguard.telemetry.includeErrorReports": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include error stack traces in telemetry reports."
+        },
+        "flowguard.general.logLevel": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARN", "ERROR"],
+          "default": "INFO",
+          "description": "Logging level for FlowGuard output channel."
+        },
+        "flowguard.general.showWelcomeOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome message when FlowGuard extension activates."
         }
       }
     },
