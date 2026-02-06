@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { ArtifactStorage } from './core/storage/ArtifactStorage';
 import { EpicMetadataManager } from './core/storage/EpicMetadataManager';
 import { SidebarProvider } from './ui/sidebar/SidebarProvider';
+import { SpecEditorProvider } from './ui/editors/SpecEditorProvider';
+import { TicketEditorProvider } from './ui/editors/TicketEditorProvider';
 import { createProvider } from './llm/ProviderFactory';
 import { getLLMConfig } from './llm/config';
 import { LLMProviderType } from './llm/types';
@@ -11,6 +13,8 @@ let extensionPath: string;
 let storage: ArtifactStorage | null = null;
 let epicMetadataManager: EpicMetadataManager | null = null;
 let sidebarProvider: SidebarProvider | null = null;
+let specEditorProvider: SpecEditorProvider | null = null;
+let ticketEditorProvider: TicketEditorProvider | null = null;
 let clarificationEngine: ClarificationEngine | null = null;
 let specGenerator: SpecGenerator | null = null;
 let codebaseExplorer: CodebaseExplorer | null = null;
@@ -70,6 +74,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider('flowguard.sidebarView', sidebarProvider)
+    );
+
+    // Register custom editors
+    specEditorProvider = new SpecEditorProvider(
+      context.extensionUri,
+      storage
+    );
+
+    ticketEditorProvider = new TicketEditorProvider(
+      context.extensionUri,
+      storage
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerCustomEditorProvider('flowguard.specEditor', specEditorProvider, {
+        webviewOptions: { retainContextWhenHidden: true }
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerCustomEditorProvider('flowguard.ticketEditor', ticketEditorProvider, {
+        webviewOptions: { retainContextWhenHidden: true }
+      })
     );
 
     // Register commands
@@ -136,4 +163,12 @@ export function getCodebaseExplorer(): CodebaseExplorer | null {
 
 export function getSidebarProvider(): SidebarProvider | null {
   return sidebarProvider;
+}
+
+export function getSpecEditorProvider(): SpecEditorProvider | null {
+  return specEditorProvider;
+}
+
+export function getTicketEditorProvider(): TicketEditorProvider | null {
+  return ticketEditorProvider;
 }

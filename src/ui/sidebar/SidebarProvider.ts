@@ -173,8 +173,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private async _openArtifact(type: string, id: string): Promise<void> {
     const artifactPath = this._storage.getArtifactPath(type as any, id);
     const uri = vscode.Uri.file(artifactPath);
-    const document = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(document, { preview: false });
+
+    if (type === 'spec') {
+      await vscode.commands.executeCommand('vscode.openWith', uri, 'flowguard.specEditor');
+    } else if (type === 'ticket') {
+      await vscode.commands.executeCommand('vscode.openWith', uri, 'flowguard.ticketEditor');
+    } else {
+      const document = await vscode.workspace.openTextDocument(uri);
+      await vscode.window.showTextDocument(document, { preview: false });
+    }
   }
 
   public async createSpec(): Promise<void> {

@@ -4,10 +4,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   target: 'web',
   mode: 'production',
-  entry: './src/ui/sidebar/webview/main.ts',
+  entry: {
+    sidebar: './src/ui/sidebar/webview/main.ts',
+    specEditor: './src/ui/editors/webview/specEditorMain.ts',
+    ticketEditor: './src/ui/editors/webview/ticketEditorMain.ts'
+  },
   output: {
     path: path.resolve(__dirname, 'out/webview'),
-    filename: 'sidebar.js',
+    filename: '[name].js',
     clean: true
   },
   resolve: {
@@ -60,7 +64,8 @@ module.exports = {
       template: './src/ui/sidebar/webview/template.html',
       filename: 'sidebar.html',
       inject: 'body',
-      minify: false
+      minify: false,
+      chunks: ['sidebar']
     })
   ],
   devtool: 'source-map'

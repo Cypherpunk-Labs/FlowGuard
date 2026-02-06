@@ -105,7 +105,29 @@
           "group": "navigation"
         }
       ]
-    }
+    },
+    "customEditors": [
+      {
+        "viewType": "flowguard.specEditor",
+        "displayName": "FlowGuard Spec Editor",
+        "selector": [
+          {
+            "filenamePattern": "**/specs/spec-*.md"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "flowguard.ticketEditor",
+        "displayName": "FlowGuard Ticket Editor",
+        "selector": [
+          {
+            "filenamePattern": "**/tickets/ticket-*.md"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
   },
   "scripts": {
     "compile": "webpack --config webpack.config.js --mode production && webpack --config webpack.webview.config.js --mode production",
