@@ -208,6 +208,41 @@
           "type": "boolean",
           "default": true,
           "description": "Show welcome message when FlowGuard extension activates."
+        },
+        "flowguard.plugins.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the plugin system for FlowGuard."
+        },
+        "flowguard.plugins.autoLoad": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically load plugins from .flowguard/plugins/ on startup."
+        },
+        "flowguard.plugins.verificationRules": {
+          "type": [
+            "object"
+          ],
+          "default": {},
+          "description": "Enable/disable specific verification rules by ID. Keys are rule IDs, values are booleans."
+        },
+        "flowguard.plugins.trustedPlugins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of trusted plugin IDs that can execute without confirmation."
+        },
+        "flowguard.plugins.requireSignature": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require plugins to be signed (future feature)."
+        },
+        "flowguard.plugins.allowRemotePlugins": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow loading plugins from remote URLs (future feature)."
         }
       }
     },
@@ -341,6 +376,29 @@
       {
         "command": "flowguard.goToTicket",
         "title": "FlowGuard: Go to Ticket"
+      },
+      {
+        "command": "flowguard.listPlugins",
+        "title": "FlowGuard: List Plugins",
+        "icon": "$(extensions)"
+      },
+      {
+        "command": "flowguard.reloadPlugin",
+        "title": "FlowGuard: Reload Plugin"
+      },
+      {
+        "command": "flowguard.installPlugin",
+        "title": "FlowGuard: Install Plugin",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "flowguard.uninstallPlugin",
+        "title": "FlowGuard: Uninstall Plugin"
+      },
+      {
+        "command": "flowguard.reloadAllPlugins",
+        "title": "FlowGuard: Reload All Plugins",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {

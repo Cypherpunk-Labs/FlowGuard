@@ -7,6 +7,7 @@ export const STORAGE_DIRS = {
   EXECUTIONS: 'executions',
   VERIFICATIONS: 'verifications',
   TEMPLATES: 'templates',
+  PLUGINS: 'plugins',
 } as const;
 
 export const FILE_PATTERNS = {
@@ -16,6 +17,7 @@ export const FILE_PATTERNS = {
   VERIFICATION: 'verification-{id}.md',
   EPIC_METADATA: 'epic.json',
   TEMPLATE: '{agentType}.md',
+  PLUGIN_MANIFEST: 'plugin.json',
 } as const;
 
 export function getSpecFilename(id: string): string {
@@ -40,4 +42,8 @@ export function getEpicMetadataFilename(): string {
 
 export function getTemplateFilename(agentType: string): string {
   return `${agentType}.md`;
+}
+
+export function getPluginDir(pluginId: string): string {
+  return `${STORAGE_DIRS.PLUGINS}/${pluginId}`;
 }

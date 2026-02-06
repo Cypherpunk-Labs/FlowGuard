@@ -37,7 +37,69 @@ export interface ClassInfo {
   implements?: string[];
 }
 
+export interface DiagramContext {
+  files: string[];
+  context?: any;
+}
+
 export class MermaidGenerator {
+  private static pluginDiagramTypes: Map<string, any> = new Map();
+
+  /**
+   * Register plugin diagram types
+   */
+  static setPluginDiagramTypes(types: any[]): void {
+    this.pluginDiagramTypes.clear();
+    for (const type of types) {
+      this.pluginDiagramTypes.set(type.id, type);
+    }
+  }
+
+  /**
+   * Get all plugin diagram types
+   */
+  static getPluginDiagramTypes(): any[] {
+    return Array.from(this.pluginDiagramTypes.values());
+  }
+
+  /**
+   * Get supported diagram types (built-in + plugin)
+   */
+  static getSupportedDiagramTypes(): string[] {
+    const builtInTypes = ['architecture', 'sequence', 'flow', 'class'];
+    const pluginTypes = Array.from(this.pluginDiagramTypes.keys());
+    return [...builtInTypes, ...pluginTypes];
+  }
+
+  /**
+   * Generate diagram based on type
+   */
+  static async generateDiagram(type: string, context: DiagramContext): Promise<string> {
+    // Check for plugin diagram type first
+    const pluginType = this.pluginDiagramTypes.get(type);
+    if (pluginType && pluginType.generate) {
+      return await pluginType.generate(context);
+    }
+
+    // Fallback to built-in types
+    switch (type) {
+      case 'architecture':
+        // This would need to be implemented based on the context
+        return 'graph TD\n  A[Not Implemented] --> B[For Plugin Diagrams]';
+      case 'sequence':
+        // This would need to be implemented based on the context
+        return 'sequenceDiagram\n  participant A\n  A->>B: Not Implemented';
+      case 'flow':
+        // This would need to be implemented based on the context
+        return 'flowchart TD\n  A[Not Implemented] --> B[For Plugin Diagrams]';
+      case 'class':
+        // This would need to be implemented based on the context
+        return 'classDiagram\n  class A';
+      default:
+        throw new Error(`Unsupported diagram type: ${type}`);
+    }
+  }
+  
   generateArchitectureDiagram(components: Component[], relationships: Relationship[]): string {
     const lines: string[] = ['graph TD'];
     

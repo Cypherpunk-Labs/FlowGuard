@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ArtifactStorage } from './core/storage/ArtifactStorage';
 import { EpicMetadataManager } from './core/storage/EpicMetadataManager';
 import { configurationManager } from './core/config/ConfigurationManager';
@@ -17,9 +18,14 @@ import { ClarificationEngine, SpecGenerator, CodebaseExplorer, WorkflowOrchestra
 import { GitHelper } from './core/git/GitHelper';
 import { ReferenceResolver } from './core/references/ReferenceResolver';
 import { VerificationEngine } from './verification/VerificationEngine';
-import { HandoffGenerator } from './handoff';
+import { HandoffGenerator, AgentTemplates } from './handoff';
+import { TemplateEngine } from './handoff/TemplateEngine';
+import { TicketTemplates } from './planning/templates/TicketTemplates';
+import { MermaidGenerator } from './planning/diagrams/MermaidGenerator';
 import { registerCommands, CommandContext } from './commands';
 import { setLogLevel } from './utils/logger';
+import { PluginManager } from './plugins/PluginManager';
+import { PluginContextImpl } from './plugins/PluginContext';
 
 let extensionPath: string;
 let storage: ArtifactStorage | null = null;
@@ -37,6 +43,7 @@ let verificationEngine: VerificationEngine | null = null;
 let handoffGenerator: HandoffGenerator | null = null;
 let gitHelper: GitHelper | null = null;
 let referenceResolver: ReferenceResolver | null = null;
+let pluginManager: PluginManager | null = null;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   extensionPath = context.extensionPath;
@@ -92,19 +99,74 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       storage,
       referenceResolver
     );
+    // Initialize plugin manager
+    const pluginsDir = path.join(workspaceRoot, '.flowguard', 'plugins');
+    pluginManager = new PluginManager(pluginsDir);
+
     verificationEngine = new VerificationEngine(
       provider,
       storage,
       gitHelper,
       referenceResolver,
-      codebaseExplorer
+      codebaseExplorer,
+      pluginManager
     );
+    
+    // Load plugins after core services are initialized but before handoffGenerator
+    try {
+      const autoLoad = vscode.workspace.getConfiguration('flowguard.plugins').get<boolean>('autoLoad', true);
+      if (autoLoad) {
+        await pluginManager.loadPlugins(
+          (manager, pluginId, extensionPath) => {
+            // Create context for each plugin with proper pluginId and extensionPath
+            return new PluginContextImpl(
+              pluginId,
+              storage!,
+              provider,
+              codebaseExplorer!,
+              workspaceRoot,
+              extensionPath,
+              manager
+            );
+          },
+          context.extensionPath
+        );
+        console.log(`Loaded ${pluginManager.getLoadedPlugins().length} plugins`);
+        
+        // Wire up plugin agent integrations
+        const agentIntegrations = pluginManager.getAgentIntegrations();
+        if (agentIntegrations.length > 0) {
+          AgentTemplates.setPluginIntegrations(agentIntegrations);
+          console.log(`Registered ${agentIntegrations.length} plugin agent integrations`);
+        }
+        
+        // Wire up plugin templates
+        const templates = pluginManager.getTemplates();
+        if (templates.length > 0) {
+          TemplateEngine.setPluginTemplates(templates);
+          TicketTemplates.setPluginTemplates(templates);
+          console.log(`Registered ${templates.length} plugin templates`);
+        }
+        
+        // Wire up plugin diagram types
+        const diagramTypes = pluginManager.getDiagramTypes();
+        if (diagramTypes.length > 0) {
+          MermaidGenerator.setPluginDiagramTypes(diagramTypes);
+          console.log(`Registered ${diagramTypes.length} plugin diagram types`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load plugins:', error);
+      vscode.window.showWarningMessage('Some plugins failed to load. Check the FlowGuard output channel for details.');
+    }
+    
     handoffGenerator = new HandoffGenerator(
       storage,
       codebaseExplorer,
       referenceResolver,
       epicMetadataManager,
-      workspaceRoot
+      workspaceRoot,
+      pluginManager
     );
 
     context.workspaceState.update('storage', storage);
@@ -178,6 +240,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       codebaseExplorer: codebaseExplorer!,
       llmProvider: provider,
       workspaceRoot,
+      pluginManager: pluginManager!,
     };
 
     registerCommands(context, commandContext);
@@ -191,8 +254,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(configurationWatcher);
 }
 
-export function deactivate(): void {
+export async function deactivate(): Promise<void> {
   console.log('FlowGuard extension deactivated');
+  
+  // Unload all plugins
+  if (pluginManager) {
+    try {
+      await pluginManager.unloadAllPlugins();
+      console.log('All plugins unloaded');
+      // Clear plugin contributions from consumers
+      AgentTemplates.setPluginIntegrations([]);
+      TemplateEngine.setPluginTemplates([]);
+      TicketTemplates.setPluginTemplates([]);
+      MermaidGenerator.setPluginDiagramTypes([]);
+    } catch (error) {
+      console.error('Error unloading plugins:', error);
+    }
+  }
+  
   configurationManager.dispose();
   configurationWatcher.dispose();
 }

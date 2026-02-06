@@ -1,6 +1,9 @@
 import { TemplateVariables, TemplateNode } from './types';
+import { TemplateContribution } from '../plugins/types';
 
 export class TemplateEngine {
+  private static pluginTemplates: Map<string, TemplateContribution> = new Map();
+
   render(template: string, variables: TemplateVariables): string {
     const nodes = this.parseTemplate(template);
     return nodes.map(node => this.evaluateNode(node, variables)).join('');
@@ -227,5 +230,33 @@ export class TemplateEngine {
       valid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * Register plugin templates
+   */
+  static setPluginTemplates(templates: TemplateContribution[]): void {
+    this.pluginTemplates.clear();
+    for (const template of templates) {
+      // Validate no ID conflicts
+      if (this.pluginTemplates.has(template.id)) {
+        console.warn(`Duplicate plugin template ID detected: ${template.id}`);
+      }
+      this.pluginTemplates.set(template.id, template);
+    }
+  }
+
+  /**
+   * Get all plugin templates
+   */
+  static getPluginTemplates(): TemplateContribution[] {
+    return Array.from(this.pluginTemplates.values());
+  }
+
+  /**
+   * Get a specific plugin template by ID
+   */
+  static getPluginTemplate(id: string): TemplateContribution | undefined {
+    return this.pluginTemplates.get(id);
   }
 }

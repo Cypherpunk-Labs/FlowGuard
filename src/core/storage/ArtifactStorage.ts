@@ -34,6 +34,7 @@ export class ArtifactStorage {
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.EXECUTIONS));
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.VERIFICATIONS));
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.TEMPLATES));
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.PLUGINS));
     log('ArtifactStorage initialized');
   }
 
@@ -428,5 +429,13 @@ export class ArtifactStorage {
     }
     await deleteFile(filePath);
     log(`Deleted template: ${agentType}`);
+  }
+
+  getPluginsDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.PLUGINS);
+  }
+
+  getPluginPath(pluginId: string): string {
+    return path.join(this.getPluginsDir(), pluginId);
   }
 }

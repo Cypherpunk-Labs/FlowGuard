@@ -69,6 +69,8 @@ export interface AgentTemplate {
   template: string;
   description: string;
   sections: TemplateSection[];
+  preprocessor?: (data: TemplateVariables) => Promise<TemplateVariables>;
+  postprocessor?: (markdown: string) => Promise<string>;
 }
 
 export interface TemplateSection {

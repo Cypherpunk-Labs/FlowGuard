@@ -12,6 +12,7 @@ import {
   SpecTemplateData,
   TicketTemplateData,
   CodebaseFileData,
+  AgentTemplate
 } from './types';
 import { Spec } from '../core/models/Spec';
 import { Ticket } from '../core/models/Ticket';
@@ -65,8 +66,20 @@ export class MarkdownExporter {
     );
 
     const agentTemplate = AgentTemplates.getTemplate(input.agentType, this.workspaceRoot);
+    
+    // Apply preprocessor hook if available
+    let processedVariables = templateVariables;
+    if (agentTemplate.preprocessor) {
+      processedVariables = await agentTemplate.preprocessor(templateVariables);
+    }
+    
     const template = input.customTemplate || agentTemplate.template;
-    const markdown = this.templateEngine.render(template, templateVariables);
+    let markdown = this.templateEngine.render(template, processedVariables);
+    
+    // Apply postprocessor hook if available
+    if (agentTemplate.postprocessor) {
+      markdown = await agentTemplate.postprocessor(markdown);
+    }
     
     const resolvedMarkdown = await this.resolveReferences(markdown);
     const metadata = this.calculateMetadata(resolvedMarkdown, specs, tickets);

@@ -1,6 +1,7 @@
 import { AgentTemplate, AgentType, TemplateSection } from './types';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { AgentIntegration, TemplateVariables } from '../plugins/types';
 
 const CURSOR_TEMPLATE = `# Development Task - {{epicTitle}}
 
@@ -172,9 +173,16 @@ const BUILTIN_TEMPLATES: Record<AgentType, AgentTemplate> = {
 };
 
 const customTemplates: Map<string, AgentTemplate> = new Map();
+let pluginIntegrations: Map<string, AgentIntegration> = new Map();
 
 export class AgentTemplates {
   static getTemplate(agentType: AgentType, workspaceRoot?: string): AgentTemplate {
+    // Check for plugin integration first
+    const pluginIntegration = pluginIntegrations.get(agentType);
+    if (pluginIntegration) {
+      return this.convertIntegrationToTemplate(pluginIntegration);
+    }
+
     if (workspaceRoot) {
       const customTemplate = this.loadCustomTemplateSync(agentType, workspaceRoot);
       if (customTemplate) {
@@ -190,9 +198,13 @@ export class AgentTemplates {
   }
 
   static getAllTemplates(): AgentTemplate[] {
+    const pluginTemplates = Array.from(pluginIntegrations.values()).map(integration =>
+      this.convertIntegrationToTemplate(integration)
+    );
     return [
       ...Object.values(BUILTIN_TEMPLATES),
-      ...Array.from(customTemplates.values())
+      ...Array.from(customTemplates.values()),
+      ...pluginTemplates
     ];
   }
 
@@ -240,5 +252,46 @@ export class AgentTemplates {
     } catch (error) {
       return null;
     }
+  }
+
+  /**
+   * Register plugin agent integrations
+   */
+  static setPluginIntegrations(integrations: AgentIntegration[]): void {
+    pluginIntegrations.clear();
+    for (const integration of integrations) {
+      pluginIntegrations.set(integration.agentType, integration);
+    }
+  }
+
+  /**
+   * Get a plugin agent integration by type
+   */
+  static getPluginIntegration(agentType: string): AgentIntegration | undefined {
+    return pluginIntegrations.get(agentType);
+  }
+
+  /**
+   * Get all available agent types including plugin integrations
+   */
+  static getAllAgentTypes(): string[] {
+    const builtinTypes = Object.keys(BUILTIN_TEMPLATES);
+    const pluginTypes = Array.from(pluginIntegrations.keys());
+    return [...builtinTypes, ...pluginTypes];
+  }
+
+  /**
+   * Convert AgentIntegration to AgentTemplate
+   */
+  static convertIntegrationToTemplate(integration: AgentIntegration): AgentTemplate {
+    return {
+      name: integration.name,
+      agentType: integration.agentType as AgentType,
+      template: integration.template,
+      description: `Plugin-provided template for ${integration.name}`,
+      sections: [],
+      preprocessor: integration.preprocessor as unknown as ((data: import('./types').TemplateVariables) => Promise<import('./types').TemplateVariables>) | undefined,
+      postprocessor: integration.postprocessor
+    };
   }
 }

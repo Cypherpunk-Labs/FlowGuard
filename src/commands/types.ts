@@ -11,6 +11,7 @@ import { GitHelper } from '../core/git/GitHelper';
 import { ReferenceResolver } from '../core/references/ReferenceResolver';
 import { CodebaseExplorer } from '../planning/codebase/CodebaseExplorer';
 import { LLMProvider } from '../llm/types';
+import { PluginManager } from '../plugins/PluginManager';
 
 export interface CommandContext {
   storage: ArtifactStorage;
@@ -26,6 +27,7 @@ export interface CommandContext {
   codebaseExplorer: CodebaseExplorer;
   llmProvider: LLMProvider;
   workspaceRoot: string;
+  pluginManager: PluginManager;
 }
 
 export interface CommandResult {
@@ -52,3 +54,8 @@ export interface HandoffInputOptions {
 
 export const AGENT_TYPES = ['cursor', 'claude', 'windsurf', 'cline', 'aider', 'custom'] as const;
 export type AgentType = typeof AGENT_TYPES[number];
+
+export type CommandHandler = (
+  context: CommandContext,
+  ...args: unknown[]
+) => Promise<unknown>;

@@ -1,4 +1,5 @@
 import { Priority } from '../../core/models/Ticket';
+import { TemplateContribution } from '../../plugins/types';
 
 export type TicketType = 'feature' | 'bugfix' | 'refactor' | 'test' | 'documentation';
 
@@ -12,6 +13,8 @@ export interface TicketTemplateSection {
 export interface TicketTemplate {
   type: TicketType;
   sections: TicketTemplateSection[];
+  // Plugin template reference
+  pluginTemplate?: TemplateContribution;
 }
 
 export interface TicketData {
@@ -29,10 +32,35 @@ export interface TicketData {
 
 export class TicketTemplates {
   private templates: Map<TicketType, TicketTemplate>;
+  private static pluginTemplates: Map<string, TemplateContribution> = new Map();
 
   constructor() {
     this.templates = new Map();
     this.initializeTemplates();
+  }
+
+  /**
+   * Register plugin templates for tickets
+   */
+  static setPluginTemplates(templates: TemplateContribution[]): void {
+    this.pluginTemplates.clear();
+    // Filter templates for ticket type
+    const ticketTemplates = templates.filter(t => t.type === 'ticket');
+    
+    for (const template of ticketTemplates) {
+      // Validate no ID conflicts
+      if (this.pluginTemplates.has(template.id)) {
+        console.warn(`Duplicate plugin ticket template ID detected: ${template.id}`);
+      }
+      this.pluginTemplates.set(template.id, template);
+    }
+  }
+
+  /**
+   * Get all plugin ticket templates
+   */
+  static getPluginTemplates(): TemplateContribution[] {
+    return Array.from(this.pluginTemplates.values());
   }
 
   private initializeTemplates(): void {
@@ -272,6 +300,16 @@ export class TicketTemplates {
   }
 
   getTemplate(type: TicketType): TicketTemplate {
+    // Check for plugin template first
+    const pluginTemplate = TicketTemplates.pluginTemplates.get(type);
+    if (pluginTemplate) {
+      return {
+        type,
+        sections: [], // Plugin templates define their own structure
+        pluginTemplate
+      };
+    }
+    
     const template = this.templates.get(type);
     if (!template) {
       throw new Error(`Unknown ticket type: ${type}`);
@@ -280,6 +318,13 @@ export class TicketTemplates {
   }
 
   applyTemplate(template: TicketTemplate, data: TicketData): string {
+    // If this is a plugin template, use the plugin template content
+    if (template.pluginTemplate) {
+      // For now, we'll return a placeholder - in a real implementation,
+      // we would need to render the plugin template with the provided data
+      return `Plugin Template: ${template.pluginTemplate.name}\n\nTemplate content would be rendered here with the provided data.`;
+    }
+    
     let content = '';
 
     for (const section of template.sections) {
@@ -357,6 +402,8 @@ export class TicketTemplates {
   }
 
   getAvailableTypes(): TicketType[] {
-    return Array.from(this.templates.keys());
+    const builtInTypes = Array.from(this.templates.keys());
+    const pluginTypes = Array.from(TicketTemplates.pluginTemplates.keys()) as TicketType[];
+    return [...builtInTypes, ...pluginTypes];
   }
 }

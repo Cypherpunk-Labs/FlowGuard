@@ -14,6 +14,7 @@ import {
   Execution,
   AgentType,
 } from './types';
+import { PluginManager } from '../plugins/PluginManager';
 
 export interface HandoffResult {
   markdown: string;
@@ -29,19 +30,22 @@ export class HandoffGenerator {
   private markdownExporter: MarkdownExporter;
   private executionTracker: ExecutionTracker;
   private workspaceRoot: string;
+  private pluginManager: PluginManager | null;
 
   constructor(
     storage: ArtifactStorage,
     codebaseExplorer: CodebaseExplorer,
     referenceResolver: ReferenceResolver,
     epicMetadataManager: EpicMetadataManager,
-    workspaceRoot: string
+    workspaceRoot: string,
+    pluginManager: PluginManager | null = null
   ) {
     this.storage = storage;
     this.codebaseExplorer = codebaseExplorer;
     this.referenceResolver = referenceResolver;
     this.epicMetadataManager = epicMetadataManager;
     this.workspaceRoot = workspaceRoot;
+    this.pluginManager = pluginManager;
     
     this.markdownExporter = new MarkdownExporter(
       storage,
@@ -86,7 +90,16 @@ export class HandoffGenerator {
   }
 
   getAvailableAgents(): AgentType[] {
-    return ['cursor', 'claude', 'windsurf', 'cline', 'aider', 'custom'];
+    // Get builtin agents
+    const builtinAgents: AgentType[] = ['cursor', 'claude', 'windsurf', 'cline', 'aider', 'custom'];
+    
+    // Get plugin agent types
+    if (this.pluginManager) {
+      const pluginAgentTypes = this.pluginManager.getAgentIntegrations().map(i => i.agentType as AgentType);
+      return [...builtinAgents, ...pluginAgentTypes];
+    }
+    
+    return builtinAgents;
   }
 
   private async validateInput(input: HandoffInput): Promise<void> {
@@ -108,9 +121,10 @@ export class HandoffGenerator {
       }
     }
 
-    // Validate agent type
+    // Validate agent type - check both builtin and plugin integrations
     const availableAgents = this.getAvailableAgents();
-    if (!availableAgents.includes(input.agentType)) {
+    const availableAgentTypes = AgentTemplates.getAllAgentTypes();
+    if (!availableAgents.includes(input.agentType) && !availableAgentTypes.includes(input.agentType)) {
       throw new Error(`Unknown agent type: ${input.agentType}`);
     }
   }

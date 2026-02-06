@@ -31,6 +31,13 @@ import {
   goToSpecCommand,
   goToTicketCommand,
 } from './navigationCommands';
+import {
+  listPluginsCommand,
+  reloadPluginCommand,
+  installPluginCommand,
+  uninstallPluginCommand,
+  reloadAllPluginsCommand,
+} from './pluginCommands';
 
 export interface CommandHandler {
   (context: CommandContext, ...args: unknown[]): Promise<unknown>;
@@ -62,6 +69,11 @@ export function registerCommands(
     { id: 'flowguard.goToTicket', handler: goToTicketCommand },
     { id: 'flowguard.applyAutoFix', handler: applyAutoFixCommand },
     { id: 'flowguard.ignoreIssue', handler: ignoreIssueCommand },
+    { id: 'flowguard.listPlugins', handler: listPluginsCommand },
+    { id: 'flowguard.reloadPlugin', handler: reloadPluginCommand },
+    { id: 'flowguard.installPlugin', handler: installPluginCommand },
+    { id: 'flowguard.uninstallPlugin', handler: uninstallPluginCommand },
+    { id: 'flowguard.reloadAllPlugins', handler: reloadAllPluginsCommand },
   ];
 
   commands.forEach(({ id, handler }) => {
@@ -102,3 +114,4 @@ export * from './ticketCommands';
 export * from './handoffCommands';
 export * from './verificationCommands';
 export * from './navigationCommands';
+export * from './pluginCommands';

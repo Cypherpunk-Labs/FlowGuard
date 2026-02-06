@@ -3,13 +3,16 @@ import { ArtifactStorage } from '../core/storage/ArtifactStorage';
 import { GitHelper } from '../core/git/GitHelper';
 import { ReferenceResolver } from '../core/references/ReferenceResolver';
 import { CodebaseExplorer } from '../planning/codebase/CodebaseExplorer';
-import { Verification, DiffSource, DiffAnalysis } from '../core/models/Verification';
+import { Verification, DiffSource, DiffAnalysis, VerificationIssue } from '../core/models/Verification';
 import { DiffAnalyzer } from './DiffAnalyzer';
 import { SpecMatcher } from './SpecMatcher';
 import { SeverityRater } from './SeverityRater';
 import { FeedbackGenerator } from './FeedbackGenerator';
 import { VerificationInput, VerificationOptions, SpecMatchResult, SeverityRating, ParsedDiff, MatchWithRatings } from './types';
 import { generateUUID } from '../utils/uuid';
+import { PluginManager } from '../plugins/PluginManager';
+import { ValidationContext } from '../plugins/types';
+import * as vscode from 'vscode';
 
 export class VerificationEngine {
   private llmProvider: LLMProvider;
@@ -17,6 +20,7 @@ export class VerificationEngine {
   private gitHelper: GitHelper;
   private resolver: ReferenceResolver;
   private codebaseExplorer: CodebaseExplorer;
+  private pluginManager: PluginManager | null;
 
   private diffAnalyzer: DiffAnalyzer;
   private specMatcher: SpecMatcher;
@@ -28,13 +32,15 @@ export class VerificationEngine {
     storage: ArtifactStorage,
     gitHelper: GitHelper,
     resolver: ReferenceResolver,
-    codebaseExplorer: CodebaseExplorer
+    codebaseExplorer: CodebaseExplorer,
+    pluginManager: PluginManager | null = null
   ) {
     this.llmProvider = llmProvider;
     this.storage = storage;
     this.gitHelper = gitHelper;
     this.resolver = resolver;
     this.codebaseExplorer = codebaseExplorer;
+    this.pluginManager = pluginManager;
 
     this.diffAnalyzer = new DiffAnalyzer();
     this.specMatcher = new SpecMatcher(llmProvider, storage, resolver);
@@ -95,6 +101,10 @@ export class VerificationEngine {
       let issues = await this.feedbackGenerator.generateFeedback(matchResults, {
         includeCodeExamples: options?.includeCodeExamples
       });
+
+      // Execute plugin verification rules
+      const pluginIssues = await this.executePluginRules(parsedDiff);
+      issues = [...issues, ...pluginIssues];
 
       if (options?.skipLowSeverity) {
         issues = issues.filter(issue => issue.severity !== 'Low');
@@ -192,5 +202,44 @@ export class VerificationEngine {
       deletions: parsedDiff.deletions,
       changedFiles: parsedDiff.changedFiles
     };
+  }
+
+  private async executePluginRules(parsedDiff: ParsedDiff): Promise<VerificationIssue[]> {
+    if (!this.pluginManager) {
+      return [];
+    }
+
+    const rules = this.pluginManager.getVerificationRules();
+    const allIssues: VerificationIssue[] = [];
+
+    for (const rule of rules) {
+      try {
+        // Check if rule is enabled via configuration
+        const config = vscode.workspace.getConfiguration('flowguard.plugins.verificationRules');
+        const isEnabled = config.get<boolean>(rule.id, rule.enabled);
+
+        if (!isEnabled) {
+          continue;
+        }
+
+        // Create validation context for each file
+        for (const changedFile of parsedDiff.changedFiles) {
+          const validationContext: ValidationContext = {
+            fileChanges: parsedDiff.changedFiles,
+            specContent: '', // Will be populated if needed by the rule
+            fileContent: changedFile.changes.map(c => c.content).join('\n'),
+            filePath: changedFile.path,
+            workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || ''
+          };
+
+          const issues = await rule.validate(validationContext);
+          allIssues.push(...issues);
+        }
+      } catch (error) {
+        console.error(`Failed to execute plugin rule ${rule.id}:`, error);
+      }
+    }
+
+    return allIssues;
   }
 }
