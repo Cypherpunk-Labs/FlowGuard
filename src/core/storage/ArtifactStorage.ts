@@ -10,6 +10,7 @@ import {
   getTicketFilename,
   getExecutionFilename,
   getVerificationFilename,
+  getTemplateFilename,
 } from './constants';
 import {
   ArtifactType,
@@ -32,6 +33,7 @@ export class ArtifactStorage {
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.TICKETS));
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.EXECUTIONS));
     await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.VERIFICATIONS));
+    await ensureDirectory(path.join(this.flowguardRoot, STORAGE_DIRS.TEMPLATES));
     log('ArtifactStorage initialized');
   }
 
@@ -382,5 +384,49 @@ export class ArtifactStorage {
       default:
         throw new StorageError(`Unknown artifact type: ${type}`, 'filesystem', { operation: 'getArtifactPath' });
     }
+  }
+
+  getTemplatesDir(): string {
+    return path.join(this.flowguardRoot, STORAGE_DIRS.TEMPLATES);
+  }
+
+  private getTemplatePath(agentType: string): string {
+    return path.join(this.getTemplatesDir(), getTemplateFilename(agentType));
+  }
+
+  async saveTemplate(agentType: string, template: string): Promise<void> {
+    await ensureDirectory(this.getTemplatesDir());
+    const filePath = this.getTemplatePath(agentType);
+    await writeFile(filePath, template);
+    log(`Saved template: ${agentType}`);
+  }
+
+  async loadTemplate(agentType: string): Promise<string | null> {
+    const filePath = this.getTemplatePath(agentType);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      return null;
+    }
+    return await readFile(filePath);
+  }
+
+  async listTemplates(): Promise<string[]> {
+    const dir = this.getTemplatesDir();
+    const exists = await fileExists(dir);
+    if (!exists) {
+      return [];
+    }
+    const files = await listFiles(dir, /\.md$/);
+    return files.map(file => file.replace('.md', ''));
+  }
+
+  async deleteTemplate(agentType: string): Promise<void> {
+    const filePath = this.getTemplatePath(agentType);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      throw new StorageError(`Template not found: ${agentType}`, 'not_found', { operation: 'deleteTemplate' });
+    }
+    await deleteFile(filePath);
+    log(`Deleted template: ${agentType}`);
   }
 }

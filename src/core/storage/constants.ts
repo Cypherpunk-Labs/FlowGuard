@@ -6,6 +6,7 @@ export const STORAGE_DIRS = {
   TICKETS: 'tickets',
   EXECUTIONS: 'executions',
   VERIFICATIONS: 'verifications',
+  TEMPLATES: 'templates',
 } as const;
 
 export const FILE_PATTERNS = {
@@ -14,6 +15,7 @@ export const FILE_PATTERNS = {
   EXECUTION: 'execution-{id}.md',
   VERIFICATION: 'verification-{id}.md',
   EPIC_METADATA: 'epic.json',
+  TEMPLATE: '{agentType}.md',
 } as const;
 
 export function getSpecFilename(id: string): string {
@@ -34,4 +36,8 @@ export function getVerificationFilename(id: string): string {
 
 export function getEpicMetadataFilename(): string {
   return 'epic.json';
+}
+
+export function getTemplateFilename(agentType: string): string {
+  return `${agentType}.md`;
 }
