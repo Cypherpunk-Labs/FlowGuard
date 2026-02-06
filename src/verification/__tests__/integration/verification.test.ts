@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect,  beforeEach } from '@jest/globals';
 import { VerificationEngine } from '../VerificationEngine';
 import { DiffAnalyzer } from '../DiffAnalyzer';
 import { SpecMatcher } from '../SpecMatcher';
@@ -12,11 +12,11 @@ import { CodebaseExplorer } from '../../planning/codebase/CodebaseExplorer';
 import { VerificationInput } from '../types';
 
 const createMockLLMProvider = (): LLMProvider => ({
-  generateText: vi.fn(),
-  generateStructured: vi.fn(async (messages: LLMMessage[], schema: object) => {
+  generateText: jest.fn(),
+  generateStructured: jest.fn(async (messages: LLMMessage[], schema: object) => {
     return generateMockStructuredResponse(schema);
   }),
-  streamText: vi.fn(),
+  streamText: jest.fn(),
 });
 
 const generateMockStructuredResponse = (schema: object): object => {
@@ -59,9 +59,9 @@ const generateMockStructuredResponse = (schema: object): object => {
 };
 
 const createMockStorage = (): ArtifactStorage => ({
-  initialize: vi.fn(),
-  saveSpec: vi.fn(),
-  loadSpec: vi.fn().mockResolvedValue({
+  initialize: jest.fn(),
+  saveSpec: jest.fn(),
+  loadSpec: jest.fn().mockResolvedValue({
     id: 'spec-123',
     epicId: 'epic-123',
     title: 'Test Spec',
@@ -72,51 +72,51 @@ const createMockStorage = (): ArtifactStorage => ({
     tags: [],
     content: '## Requirements\n1. Implement feature X\n2. Add tests'
   }),
-  listSpecs: vi.fn().mockResolvedValue([{ id: 'spec-123' }]),
-  deleteSpec: vi.fn(),
-  saveTicket: vi.fn(),
-  loadTicket: vi.fn(),
-  listTickets: vi.fn(),
-  deleteTicket: vi.fn(),
-  saveExecution: vi.fn(),
-  loadExecution: vi.fn(),
-  listExecutions: vi.fn(),
-  deleteExecution: vi.fn(),
-  saveVerification: vi.fn(),
-  loadVerification: vi.fn(),
-  listVerifications: vi.fn(),
-  deleteVerification: vi.fn(),
-  getArtifactPath: vi.fn(),
+  listSpecs: jest.fn().mockResolvedValue([{ id: 'spec-123' }]),
+  deleteSpec: jest.fn(),
+  saveTicket: jest.fn(),
+  loadTicket: jest.fn(),
+  listTickets: jest.fn(),
+  deleteTicket: jest.fn(),
+  saveExecution: jest.fn(),
+  loadExecution: jest.fn(),
+  listExecutions: jest.fn(),
+  deleteExecution: jest.fn(),
+  saveVerification: jest.fn(),
+  loadVerification: jest.fn(),
+  listVerifications: jest.fn(),
+  deleteVerification: jest.fn(),
+  getArtifactPath: jest.fn(),
 } as any);
 
 const createMockGitHelper = (): GitHelper => ({
-  isGitRepository: vi.fn().mockResolvedValue(true),
-  initRepository: vi.fn(),
-  stageFiles: vi.fn(),
-  commit: vi.fn(),
-  getCurrentBranch: vi.fn().mockResolvedValue('main'),
-  getStatus: vi.fn(),
-  getDiff: vi.fn().mockResolvedValue(''),
-  stageFlowGuardArtifact: vi.fn(),
-  commitArtifact: vi.fn(),
-  getArtifactHistory: vi.fn(),
+  isGitRepository: jest.fn().mockResolvedValue(true),
+  initRepository: jest.fn(),
+  stageFiles: jest.fn(),
+  commit: jest.fn(),
+  getCurrentBranch: jest.fn().mockResolvedValue('main'),
+  getStatus: jest.fn(),
+  getDiff: jest.fn().mockResolvedValue(''),
+  stageFlowGuardArtifact: jest.fn(),
+  commitArtifact: jest.fn(),
+  getArtifactHistory: jest.fn(),
 } as any);
 
 const createMockCodebaseExplorer = (): CodebaseExplorer => ({
-  explore: vi.fn(),
-  analyzeSingleFile: vi.fn(),
-  buildDependencyGraph: vi.fn(),
-  clearCache: vi.fn(),
+  explore: jest.fn(),
+  analyzeSingleFile: jest.fn(),
+  buildDependencyGraph: jest.fn(),
+  clearCache: jest.fn(),
 } as any);
 
 const createMockReferenceResolver = (): ReferenceResolver => ({
-  parseReference: vi.fn(),
-  resolveReference: vi.fn(),
-  extractReferences: vi.fn(),
-  resolveReferences: vi.fn(),
-  validateReferences: vi.fn(),
-  getTicketsBySpec: vi.fn(),
-  validateTicketReferences: vi.fn(),
+  parseReference: jest.fn(),
+  resolveReference: jest.fn(),
+  extractReferences: jest.fn(),
+  resolveReferences: jest.fn(),
+  validateReferences: jest.fn(),
+  getTicketsBySpec: jest.fn(),
+  validateTicketReferences: jest.fn(),
 } as any);
 
 describe('VerificationEngine Integration', () => {
@@ -187,7 +187,7 @@ index 0000000..1234567
     });
 
     it('should handle missing spec by returning error', async () => {
-      mockStorage.loadSpec = vi.fn().mockRejectedValue(new Error('Spec not found'));
+      mockStorage.loadSpec = jest.fn().mockRejectedValue(new Error('Spec not found'));
 
       const diffText = `diff --git a/src/test.ts b/src/test.ts
 --- a/src/test.ts
@@ -213,7 +213,7 @@ index 0000000..1234567
     });
 
     it('should respect skipLowSeverity option', async () => {
-      mockProvider.generateStructured = vi.fn(async (messages: LLMMessage[], schema: object) => {
+      mockProvider.generateStructured = jest.fn(async (messages: LLMMessage[], schema: object) => {
         if (JSON.stringify(schema).includes('severity')) {
           return {
             severity: 'Low',
@@ -250,7 +250,7 @@ index 0000000..1234567
     });
 
     it('should limit issues when maxIssues option is set', async () => {
-      mockProvider.generateStructured = vi.fn(async (messages: LLMMessage[], schema: object) => {
+      mockProvider.generateStructured = jest.fn(async (messages: LLMMessage[], schema: object) => {
         if (JSON.stringify(schema).includes('matchedRequirements')) {
           return {
             matchedRequirements: [],

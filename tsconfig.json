@@ -14,8 +14,12 @@
     "isolatedModules": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "out"]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "out", "tests"]
 }

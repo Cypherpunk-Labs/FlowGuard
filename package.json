@@ -20,7 +20,11 @@
       "properties": {
         "flowguard.llm.provider": {
           "type": "string",
-          "enum": ["openai", "anthropic", "local"],
+          "enum": [
+            "openai",
+            "anthropic",
+            "local"
+          ],
           "default": "openai",
           "description": "LLM provider to use. Can be overridden by FLOWGUARD_LLM_PROVIDER environment variable."
         },
@@ -73,7 +77,14 @@
         },
         "flowguard.templates.defaultAgent": {
           "type": "string",
-          "enum": ["cursor", "claude", "windsurf", "cline", "aider", "custom"],
+          "enum": [
+            "cursor",
+            "claude",
+            "windsurf",
+            "cline",
+            "aider",
+            "custom"
+          ],
           "default": "cursor",
           "description": "Default agent template to use for handoff documents."
         },
@@ -122,7 +133,13 @@
           "items": {
             "type": "string"
           },
-          "default": ["node_modules", "dist", "build", ".git", ".flowguard"],
+          "default": [
+            "node_modules",
+            "dist",
+            "build",
+            ".git",
+            ".flowguard"
+          ],
           "description": "Glob patterns to exclude from codebase scanning."
         },
         "flowguard.codebase.includePatterns": {
@@ -130,7 +147,14 @@
           "items": {
             "type": "string"
           },
-          "default": ["**/*.ts", "**/*.js", "**/*.py", "**/*.java", "**/*.go", "**/*.rs"],
+          "default": [
+            "**/*.ts",
+            "**/*.js",
+            "**/*.py",
+            "**/*.java",
+            "**/*.go",
+            "**/*.rs"
+          ],
           "description": "Glob patterns to include in codebase scanning."
         },
         "flowguard.codebase.enableIncrementalScan": {
@@ -145,7 +169,12 @@
         },
         "flowguard.verification.minimumSeverity": {
           "type": "string",
-          "enum": ["Critical", "High", "Medium", "Low"],
+          "enum": [
+            "Critical",
+            "High",
+            "Medium",
+            "Low"
+          ],
           "default": "Medium",
           "description": "Minimum severity level to report in verification results."
         },
@@ -166,7 +195,12 @@
         },
         "flowguard.general.logLevel": {
           "type": "string",
-          "enum": ["DEBUG", "INFO", "WARN", "ERROR"],
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "WARN",
+            "ERROR"
+          ],
           "default": "INFO",
           "description": "Logging level for FlowGuard output channel."
         },
@@ -484,33 +518,48 @@
     "compile": "webpack --config webpack.config.js --mode production && webpack --config webpack.webview.config.js --mode production",
     "watch": "webpack --config webpack.config.js --mode development --watch & webpack --config webpack.webview.config.js --mode development --watch",
     "pretest": "npm run compile",
-    "test": "node ./out/test/runTest.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:coverage:open": "open coverage/index.html",
+    "test:vitest": "vitest run",
+    "test:vitest:watch": "vitest watch",
+    "test:vitest:coverage": "vitest run --coverage",
     "package": "npm run compile && npx vsce package"
   },
   "dependencies": {
-    "gray-matter": "^4.0.3",
-    "simple-git": "^3.19.0",
-    "uuid": "^9.0.0",
-    "openai": "^4.0.0",
     "@anthropic-ai/sdk": "^0.20.0",
+    "gray-matter": "^4.0.3",
+    "openai": "^4.0.0",
+    "simple-git": "^3.19.0",
+    "svelte": "^4.0.0",
     "tree-sitter": "^0.21.0",
-    "tree-sitter-typescript": "^0.21.0",
     "tree-sitter-javascript": "^0.21.0",
     "tree-sitter-python": "^0.21.0",
-    "svelte": "^4.0.0"
+    "tree-sitter-typescript": "^0.21.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.80.0",
+    "@jest/globals": "^30.2.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "@types/uuid": "^9.0.0",
-    "typescript": "^5.0.0",
-    "webpack": "^5.0.0",
-    "webpack-cli": "^5.0.0",
-    "ts-loader": "^9.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "css-loader": "^6.0.0",
+    "happy-dom": "^20.5.0",
+    "html-webpack-plugin": "^5.0.0",
+    "jest": "^30.2.0",
+    "style-loader": "^3.0.0",
     "svelte-loader": "^3.1.0",
     "svelte-preprocess": "^5.0.0",
-    "css-loader": "^6.0.0",
-    "style-loader": "^3.0.0",
-    "html-webpack-plugin": "^5.0.0"
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0"
   }
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect,  beforeEach, afterEach } from '@jest/globals';
 import { WorkflowOrchestrator, WorkflowInput, WorkflowResult, WorkflowPhase } from '../WorkflowOrchestrator';
 import { ClarificationEngine, ClarificationContext } from '../ClarificationEngine';
 import { SpecGenerator, Spec } from '../SpecGenerator';
@@ -12,11 +12,11 @@ import { Ticket } from '../../core/models/Ticket';
 import { v4 as uuidv4 } from 'uuid';
 
 const createMockLLMProvider = (): LLMProvider => ({
-  generateText: vi.fn(),
-  generateStructured: vi.fn(async (messages: LLMMessage[], schema: object) => {
+  generateText: jest.fn(),
+  generateStructured: jest.fn(async (messages: LLMMessage[], schema: object) => {
     return generateMockStructuredResponse(schema);
   }),
-  streamText: vi.fn(),
+  streamText: jest.fn(),
 });
 
 const generateMockStructuredResponse = (schema: object): object => {
@@ -67,37 +67,37 @@ const generateMockStructuredResponse = (schema: object): object => {
 };
 
 const createMockStorage = (): ArtifactStorage => ({
-  initialize: vi.fn(),
-  saveSpec: vi.fn(),
-  loadSpec: vi.fn(),
-  listSpecs: vi.fn(),
-  deleteSpec: vi.fn(),
-  saveTicket: vi.fn(),
-  loadTicket: vi.fn(),
-  listTickets: vi.fn(),
-  deleteTicket: vi.fn(),
-  saveExecution: vi.fn(),
-  loadExecution: vi.fn(),
-  listExecutions: vi.fn(),
-  deleteExecution: vi.fn(),
-  getArtifactPath: vi.fn(),
+  initialize: jest.fn(),
+  saveSpec: jest.fn(),
+  loadSpec: jest.fn(),
+  listSpecs: jest.fn(),
+  deleteSpec: jest.fn(),
+  saveTicket: jest.fn(),
+  loadTicket: jest.fn(),
+  listTickets: jest.fn(),
+  deleteTicket: jest.fn(),
+  saveExecution: jest.fn(),
+  loadExecution: jest.fn(),
+  listExecutions: jest.fn(),
+  deleteExecution: jest.fn(),
+  getArtifactPath: jest.fn(),
 });
 
 const createMockCodebaseExplorer = (): CodebaseExplorer => ({
-  explore: vi.fn(),
-  getFileContent: vi.fn(),
-  findFiles: vi.fn(),
-  analyzeDependencies: vi.fn(),
+  explore: jest.fn(),
+  getFileContent: jest.fn(),
+  findFiles: jest.fn(),
+  analyzeDependencies: jest.fn(),
 });
 
 const createMockReferenceResolver = (): ReferenceResolver => ({
-  parseReference: vi.fn(),
-  resolveReference: vi.fn(),
-  extractReferences: vi.fn(),
-  resolveReferences: vi.fn(),
-  validateReferences: vi.fn(),
-  getTicketsBySpec: vi.fn(),
-  validateTicketReferences: vi.fn(),
+  parseReference: jest.fn(),
+  resolveReference: jest.fn(),
+  extractReferences: jest.fn(),
+  resolveReferences: jest.fn(),
+  validateReferences: jest.fn(),
+  getTicketsBySpec: jest.fn(),
+  validateTicketReferences: jest.fn(),
 });
 
 describe('WorkflowOrchestrator', () => {
@@ -135,15 +135,15 @@ describe('WorkflowOrchestrator', () => {
         content: '## Overview\n\nTest overview\n\n## Requirements\n\n1. Requirement 1\n\n## Technical Plan\n\n### Files to Change\n- `src/test.ts` - Test file\n\n## Testing Strategy\n\n- **Unit Tests**: All tests',
       };
 
-      vi.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
+      jest.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
 
       const input: WorkflowInput = {
         epicId: 'epic-123',
         goal: 'Implement feature X',
         tags: ['test'],
         includeCodebaseContext: false,
-        onProgress: vi.fn(),
-        onQuestionsGenerated: vi.fn().mockResolvedValue(['Scope is limited', 'Performance matters', 'Success = tests pass']),
+        onProgress: jest.fn(),
+        onQuestionsGenerated: jest.fn().mockResolvedValue(['Scope is limited', 'Performance matters', 'Success = tests pass']),
       };
 
       const result = await orchestrator.executeWorkflow(input);
@@ -167,10 +167,10 @@ describe('WorkflowOrchestrator', () => {
         content: '## Overview\n\nTest\n\n## Requirements\n\n1. Req\n\n## Technical Plan\n\n### Files to Change\n\n## Testing Strategy\n',
       };
 
-      vi.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
+      jest.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
 
       const mockProviderNoQuestions = createMockLLMProvider();
-      mockProviderNoQuestions.generateStructured = vi.fn().mockImplementation((messages: LLMMessage[], schema: object) => {
+      mockProviderNoQuestions.generateStructured = jest.fn().mockImplementation((messages: LLMMessage[], schema: object) => {
         if (schema && typeof schema === 'object' && 'questions' in schema) {
           return Promise.resolve({ questions: [] });
         }
@@ -209,13 +209,13 @@ describe('WorkflowOrchestrator', () => {
         content: '## Overview\n\nTest\n\n## Requirements\n\n1. Req 1\n\n## Technical Plan\n\n### Files to Change\n- `src/test.ts` - Test file\n\n## Testing Strategy\n',
       };
 
-      vi.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
+      jest.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
 
       const input: WorkflowInput = {
         epicId: 'epic-123',
         goal: 'Goal with validation',
         includeCodebaseContext: false,
-        onQuestionsGenerated: vi.fn().mockResolvedValue([]),
+        onQuestionsGenerated: jest.fn().mockResolvedValue([]),
       };
 
       await orchestrator.executeWorkflow(input);
@@ -238,7 +238,7 @@ describe('WorkflowOrchestrator', () => {
         content: '## Overview\n\nTest\n\n## Requirements\n\n1. Req\n\n## Technical Plan\n\n### Files to Change\n\n## Testing Strategy\n',
       };
 
-      vi.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
+      jest.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
 
       const progressEvents: Array<{ phase: WorkflowPhase; progress: number }> = [];
 
@@ -249,7 +249,7 @@ describe('WorkflowOrchestrator', () => {
         onProgress: (phase, progress) => {
           progressEvents.push({ phase, progress });
         },
-        onQuestionsGenerated: vi.fn().mockResolvedValue([]),
+        onQuestionsGenerated: jest.fn().mockResolvedValue([]),
       };
 
       await orchestrator.executeWorkflow(input);
@@ -276,13 +276,13 @@ describe('WorkflowOrchestrator', () => {
         content: '## Overview\n\nTest\n\n## Requirements\n\n1. Req\n\n## Technical Plan\n\n### Files to Change\n\n## Testing Strategy\n',
       };
 
-      vi.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
+      jest.spyOn(mockStorage, 'loadSpec').mockResolvedValue(mockSpec);
 
       const input: WorkflowInput = {
         epicId: 'epic-123',
         goal: 'Test summary',
         includeCodebaseContext: false,
-        onQuestionsGenerated: vi.fn().mockResolvedValue([]),
+        onQuestionsGenerated: jest.fn().mockResolvedValue([]),
       };
 
       const result = await orchestrator.executeWorkflow(input);
