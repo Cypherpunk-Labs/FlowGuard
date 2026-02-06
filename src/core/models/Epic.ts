@@ -11,6 +11,9 @@ export interface Epic {
   updatedAt: Date;
 }
 
+import { TechnicalPlan } from './TechnicalPlan';
+import { Diagram } from './Diagram';
+
 export interface EpicMetadata {
   author: string;
   tags: string[];

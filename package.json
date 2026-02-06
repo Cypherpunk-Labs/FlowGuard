@@ -113,6 +113,64 @@
       {
         "command": "flowguard.initializeEpic",
         "title": "Initialize Epic"
+      },
+      {
+        "command": "flowguard.createEpic",
+        "title": "FlowGuard: Create Epic",
+        "icon": "$(project)"
+      },
+      {
+        "command": "flowguard.generateHandoff",
+        "title": "FlowGuard: Generate Handoff",
+        "icon": "$(export)"
+      },
+      {
+        "command": "flowguard.verifyChanges",
+        "title": "FlowGuard: Verify Changes",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "flowguard.verifyCurrentFile",
+        "title": "FlowGuard: Verify Current File",
+        "icon": "$(check)"
+      },
+      {
+        "command": "flowguard.verifyCommit",
+        "title": "FlowGuard: Verify Commit"
+      },
+      {
+        "command": "flowguard.openSpec",
+        "title": "FlowGuard: Open Spec"
+      },
+      {
+        "command": "flowguard.openTicket",
+        "title": "FlowGuard: Open Ticket"
+      },
+      {
+        "command": "flowguard.approveSpec",
+        "title": "FlowGuard: Approve Spec",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "flowguard.assignTicket",
+        "title": "FlowGuard: Assign Ticket"
+      },
+      {
+        "command": "flowguard.copyHandoffToClipboard",
+        "title": "FlowGuard: Copy Handoff to Clipboard",
+        "icon": "$(clippy)"
+      },
+      {
+        "command": "flowguard.previewHandoff",
+        "title": "FlowGuard: Preview Handoff"
+      },
+      {
+        "command": "flowguard.goToSpec",
+        "title": "FlowGuard: Go to Spec"
+      },
+      {
+        "command": "flowguard.goToTicket",
+        "title": "FlowGuard: Go to Ticket"
       }
     ],
     "menus": {
@@ -132,6 +190,57 @@
           "when": "view == flowguard.sidebarView",
           "group": "navigation"
         }
+      ],
+      "editor/context": [
+        {
+          "command": "flowguard.verifyCurrentFile",
+          "when": "editorTextFocus",
+          "group": "flowguard@1"
+        },
+        {
+          "command": "flowguard.approveSpec",
+          "when": "resourceFilename =~ /spec-.*\\.md$/",
+          "group": "flowguard@2"
+        },
+        {
+          "command": "flowguard.goToSpec",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/",
+          "group": "flowguard@3"
+        },
+        {
+          "command": "flowguard.goToTicket",
+          "when": "resourceFilename =~ /spec-.*\\.md$/",
+          "group": "flowguard@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "flowguard.verifyChanges",
+          "when": "explorerResourceIsFolder && resourcePath =~ /\\.flowguard/",
+          "group": "flowguard@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flowguard.approveSpec",
+          "when": "resourceFilename =~ /spec-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.assignTicket",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.goToSpec",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.goToTicket",
+          "when": "resourceFilename =~ /spec-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.verifyCurrentFile",
+          "when": "editorTextFocus"
+        }
       ]
     },
     "keybindings": [
@@ -143,9 +252,73 @@
       },
       {
         "command": "flowguard.showExecution",
-        "key": "Cmd+Shift+E",
-        "mac": "Cmd+Shift+E",
+        "key": "Cmd+Shift+X",
+        "mac": "Cmd+Shift+X",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.createEpic",
+        "key": "Cmd+Shift+O",
+        "mac": "Cmd+Shift+O"
+      },
+      {
+        "command": "flowguard.createSpec",
+        "key": "Cmd+Shift+D",
+        "mac": "Cmd+Shift+D"
+      },
+      {
+        "command": "flowguard.createTicket",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t"
+      },
+      {
+        "command": "flowguard.generateHandoff",
+        "key": "ctrl+shift+h",
+        "mac": "cmd+shift+h"
+      },
+      {
+        "command": "flowguard.verifyChanges",
+        "key": "Cmd+Shift+K",
+        "mac": "Cmd+Shift+K"
+      },
+      {
+        "command": "flowguard.verifyCurrentFile",
+        "key": "ctrl+alt+v",
+        "mac": "cmd+alt+v",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.openSpec",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s"
+      },
+      {
+        "command": "flowguard.openTicket",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t"
+      },
+      {
+        "command": "flowguard.refreshSidebar",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "flowguard.approveSpec",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "resourceFilename =~ /spec-.*\\.md$/"
+      },
+      {
+        "command": "flowguard.goToSpec",
+        "key": "ctrl+shift+g s",
+        "mac": "cmd+shift+g s",
+        "when": "resourceFilename =~ /ticket-.*\\.md$/"
+      },
+      {
+        "command": "flowguard.goToTicket",
+        "key": "ctrl+shift+g t",
+        "mac": "cmd+shift+g t",
+        "when": "resourceFilename =~ /spec-.*\\.md$/"
       }
     ],
     "customEditors": [

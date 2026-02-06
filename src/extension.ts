@@ -9,7 +9,12 @@ import { ExecutionViewProvider } from './ui/views/ExecutionViewProvider';
 import { createProvider } from './llm/ProviderFactory';
 import { getLLMConfig } from './llm/config';
 import { LLMProviderType } from './llm/types';
-import { ClarificationEngine, SpecGenerator, CodebaseExplorer } from './planning';
+import { ClarificationEngine, SpecGenerator, CodebaseExplorer, WorkflowOrchestrator } from './planning';
+import { GitHelper } from './core/git/GitHelper';
+import { ReferenceResolver } from './core/references/ReferenceResolver';
+import { VerificationEngine } from './verification/VerificationEngine';
+import { HandoffGenerator } from './handoff';
+import { registerCommands, CommandContext } from './commands';
 
 let extensionPath: string;
 let storage: ArtifactStorage | null = null;
@@ -22,6 +27,11 @@ let executionViewProvider: ExecutionViewProvider | null = null;
 let clarificationEngine: ClarificationEngine | null = null;
 let specGenerator: SpecGenerator | null = null;
 let codebaseExplorer: CodebaseExplorer | null = null;
+let workflowOrchestrator: WorkflowOrchestrator | null = null;
+let verificationEngine: VerificationEngine | null = null;
+let handoffGenerator: HandoffGenerator | null = null;
+let gitHelper: GitHelper | null = null;
+let referenceResolver: ReferenceResolver | null = null;
 
 function getProviderType(): LLMProviderType {
   try {
@@ -36,7 +46,7 @@ function getProviderType(): LLMProviderType {
 
   if (process.env.OPENAI_API_KEY) return 'openai';
   if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
-  
+
   return 'openai';
 }
 
@@ -62,14 +72,35 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     clarificationEngine = new ClarificationEngine(provider);
     codebaseExplorer = new CodebaseExplorer(workspaceRoot);
-    specGenerator = new SpecGenerator(provider, codebaseExplorer);
+    specGenerator = new SpecGenerator(provider, codebaseExplorer, storage);
+    gitHelper = new GitHelper(workspaceRoot);
+    referenceResolver = new ReferenceResolver(storage, workspaceRoot);
+    workflowOrchestrator = new WorkflowOrchestrator(
+      provider,
+      codebaseExplorer,
+      storage,
+      referenceResolver
+    );
+    verificationEngine = new VerificationEngine(
+      provider,
+      storage,
+      gitHelper,
+      referenceResolver,
+      codebaseExplorer
+    );
+    handoffGenerator = new HandoffGenerator(
+      storage,
+      codebaseExplorer,
+      referenceResolver,
+      epicMetadataManager,
+      workspaceRoot
+    );
 
     context.workspaceState.update('storage', storage);
     context.workspaceState.update('specGenerator', specGenerator);
     context.workspaceState.update('clarificationEngine', clarificationEngine);
     context.workspaceState.update('codebaseExplorer', codebaseExplorer);
 
-    // Register sidebar provider
     sidebarProvider = new SidebarProvider(
       context.extensionUri,
       storage,
@@ -80,7 +111,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       vscode.window.registerWebviewViewProvider('flowguard.sidebarView', sidebarProvider)
     );
 
-    // Register custom editors
     specEditorProvider = new SpecEditorProvider(
       context.extensionUri,
       storage
@@ -103,7 +133,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       })
     );
 
-    // Register Verification View Provider
     verificationViewProvider = new VerificationViewProvider(
       context.extensionUri,
       storage!,
@@ -114,7 +143,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       vscode.window.registerWebviewViewProvider('flowguard.verificationView', verificationViewProvider)
     );
 
-    // Register Execution View Provider
     executionViewProvider = new ExecutionViewProvider(
       context.extensionUri,
       storage!,
@@ -125,51 +153,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       vscode.window.registerWebviewViewProvider('flowguard.executionView', executionViewProvider)
     );
 
-    // Register commands
-    context.subscriptions.push(
-      vscode.commands.registerCommand('flowguard.createSpec', async () => {
-        try {
-          await sidebarProvider?.createSpec();
-        } catch (error) {
-          vscode.window.showErrorMessage(`Failed to create spec: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.createTicket', async () => {
-        try {
-          await sidebarProvider?.createTicket();
-        } catch (error) {
-          vscode.window.showErrorMessage(`Failed to create ticket: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.refreshSidebar', () => {
-        sidebarProvider?.refresh();
-      }),
-      vscode.commands.registerCommand('flowguard.showVerification', async (verificationId: string) => {
-        if (verificationViewProvider) {
-          verificationViewProvider.showVerification(verificationId);
-          await vscode.commands.executeCommand('flowguard.verificationView.focus');
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.showExecution', async (executionId: string) => {
-        if (executionViewProvider) {
-          executionViewProvider.showExecution(executionId);
-          await vscode.commands.executeCommand('flowguard.executionView.focus');
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.applyAutoFix', async (verificationId: string, issueId: string) => {
-        if (verificationViewProvider) {
-          verificationViewProvider.refresh();
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.ignoreIssue', async (verificationId: string, issueId: string) => {
-        if (verificationViewProvider) {
-          verificationViewProvider.refresh();
-        }
-      }),
-      vscode.commands.registerCommand('flowguard.initializeEpic', async () => {
-        vscode.window.showInformationMessage('Initialize Epic - Coming Soon');
-      })
-    );
+    const commandContext: CommandContext = {
+      storage: storage!,
+      epicMetadataManager: epicMetadataManager!,
+      workflowOrchestrator: workflowOrchestrator!,
+      verificationEngine: verificationEngine!,
+      handoffGenerator: handoffGenerator!,
+      sidebarProvider: sidebarProvider!,
+      verificationViewProvider: verificationViewProvider!,
+      executionViewProvider: executionViewProvider!,
+      gitHelper: gitHelper!,
+      referenceResolver: referenceResolver!,
+      codebaseExplorer: codebaseExplorer!,
+      llmProvider: provider,
+      workspaceRoot,
+    };
+
+    registerCommands(context, commandContext);
 
     const outputChannel = vscode.window.createOutputChannel('FlowGuard');
     outputChannel.appendLine('FlowGuard initialized successfully');
