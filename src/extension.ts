@@ -4,6 +4,8 @@ import { EpicMetadataManager } from './core/storage/EpicMetadataManager';
 import { SidebarProvider } from './ui/sidebar/SidebarProvider';
 import { SpecEditorProvider } from './ui/editors/SpecEditorProvider';
 import { TicketEditorProvider } from './ui/editors/TicketEditorProvider';
+import { VerificationViewProvider } from './ui/views/VerificationViewProvider';
+import { ExecutionViewProvider } from './ui/views/ExecutionViewProvider';
 import { createProvider } from './llm/ProviderFactory';
 import { getLLMConfig } from './llm/config';
 import { LLMProviderType } from './llm/types';
@@ -15,6 +17,8 @@ let epicMetadataManager: EpicMetadataManager | null = null;
 let sidebarProvider: SidebarProvider | null = null;
 let specEditorProvider: SpecEditorProvider | null = null;
 let ticketEditorProvider: TicketEditorProvider | null = null;
+let verificationViewProvider: VerificationViewProvider | null = null;
+let executionViewProvider: ExecutionViewProvider | null = null;
 let clarificationEngine: ClarificationEngine | null = null;
 let specGenerator: SpecGenerator | null = null;
 let codebaseExplorer: CodebaseExplorer | null = null;
@@ -99,6 +103,28 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       })
     );
 
+    // Register Verification View Provider
+    verificationViewProvider = new VerificationViewProvider(
+      context.extensionUri,
+      storage!,
+      epicMetadataManager!
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider('flowguard.verificationView', verificationViewProvider)
+    );
+
+    // Register Execution View Provider
+    executionViewProvider = new ExecutionViewProvider(
+      context.extensionUri,
+      storage!,
+      epicMetadataManager!
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider('flowguard.executionView', executionViewProvider)
+    );
+
     // Register commands
     context.subscriptions.push(
       vscode.commands.registerCommand('flowguard.createSpec', async () => {
@@ -117,6 +143,28 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       }),
       vscode.commands.registerCommand('flowguard.refreshSidebar', () => {
         sidebarProvider?.refresh();
+      }),
+      vscode.commands.registerCommand('flowguard.showVerification', async (verificationId: string) => {
+        if (verificationViewProvider) {
+          verificationViewProvider.showVerification(verificationId);
+          await vscode.commands.executeCommand('flowguard.verificationView.focus');
+        }
+      }),
+      vscode.commands.registerCommand('flowguard.showExecution', async (executionId: string) => {
+        if (executionViewProvider) {
+          executionViewProvider.showExecution(executionId);
+          await vscode.commands.executeCommand('flowguard.executionView.focus');
+        }
+      }),
+      vscode.commands.registerCommand('flowguard.applyAutoFix', async (verificationId: string, issueId: string) => {
+        if (verificationViewProvider) {
+          verificationViewProvider.refresh();
+        }
+      }),
+      vscode.commands.registerCommand('flowguard.ignoreIssue', async (verificationId: string, issueId: string) => {
+        if (verificationViewProvider) {
+          verificationViewProvider.refresh();
+        }
       }),
       vscode.commands.registerCommand('flowguard.initializeEpic', async () => {
         vscode.window.showInformationMessage('Initialize Epic - Coming Soon');
@@ -171,4 +219,12 @@ export function getSpecEditorProvider(): SpecEditorProvider | null {
 
 export function getTicketEditorProvider(): TicketEditorProvider | null {
   return ticketEditorProvider;
+}
+
+export function getVerificationViewProvider(): VerificationViewProvider | null {
+  return verificationViewProvider;
+}
+
+export function getExecutionViewProvider(): ExecutionViewProvider | null {
+  return executionViewProvider;
 }

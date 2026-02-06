@@ -57,6 +57,18 @@
           "name": "FlowGuard",
           "type": "webview",
           "contextualTitle": "FlowGuard Manager"
+        },
+        {
+          "id": "flowguard.verificationView",
+          "name": "Verification Results",
+          "type": "webview",
+          "contextualTitle": "Verification Results"
+        },
+        {
+          "id": "flowguard.executionView",
+          "name": "Execution Tracking",
+          "type": "webview",
+          "contextualTitle": "Execution Tracking"
         }
       ]
     },
@@ -83,6 +95,22 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "flowguard.showVerification",
+        "title": "Show Verification Results"
+      },
+      {
+        "command": "flowguard.showExecution",
+        "title": "Show Execution Details"
+      },
+      {
+        "command": "flowguard.applyAutoFix",
+        "title": "Apply Auto-Fix"
+      },
+      {
+        "command": "flowguard.ignoreIssue",
+        "title": "Ignore Issue"
+      },
+      {
         "command": "flowguard.initializeEpic",
         "title": "Initialize Epic"
       }
@@ -106,6 +134,20 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "flowguard.showVerification",
+        "key": "Cmd+Shift+V",
+        "mac": "Cmd+Shift+V",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.showExecution",
+        "key": "Cmd+Shift+E",
+        "mac": "Cmd+Shift+E",
+        "when": "editorTextFocus"
+      }
+    ],
     "customEditors": [
       {
         "viewType": "flowguard.specEditor",

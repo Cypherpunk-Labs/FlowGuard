@@ -7,7 +7,9 @@ module.exports = {
   entry: {
     sidebar: './src/ui/sidebar/webview/main.ts',
     specEditor: './src/ui/editors/webview/specEditorMain.ts',
-    ticketEditor: './src/ui/editors/webview/ticketEditorMain.ts'
+    ticketEditor: './src/ui/editors/webview/ticketEditorMain.ts',
+    verificationView: './src/ui/views/webview/verificationViewMain.ts',
+    executionView: './src/ui/views/webview/executionViewMain.ts'
   },
   output: {
     path: path.resolve(__dirname, 'out/webview'),
