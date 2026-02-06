@@ -2,6 +2,9 @@ import * as path from 'path';
 import { ArtifactStorage } from '../storage/ArtifactStorage';
 import { Reference, ResolvedReference, ArtifactType } from '../storage/types';
 import { log, error } from '../../utils/logger';
+import { Ticket } from '../models/Ticket';
+import { TicketValidator, ValidationResult } from '../../planning/TicketValidator';
+import { Spec } from '../models/Spec';
 
 const REFERENCE_REGEX = /\[([^\]]+)\]\(([^)]+:[^)]+)\)|(?:spec|ticket|execution|file):([a-f0-9-]{36,})(?:#([^\s\]]+))?/gi;
 
@@ -159,5 +162,73 @@ export class ReferenceResolver {
     }
 
     return { valid, invalid };
+  }
+
+  async getTicketsBySpec(specId: string): Promise<Ticket[]> {
+    try {
+      const tickets = await this.storage.listTickets(undefined, specId);
+      
+      const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      
+      return tickets.sort((a, b) => {
+        const priorityDiff = (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3);
+        if (priorityDiff !== 0) return priorityDiff;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+    } catch (err) {
+      error(`Failed to get tickets for spec ${specId}: ${err instanceof Error ? err.message : String(err)}`);
+      return [];
+    }
+  }
+
+  async validateTicketReferences(ticket: Ticket, spec?: Spec): Promise<ValidationResult> {
+    const validator = new TicketValidator();
+    const completenessResult = validator.validateTicketCompleteness(ticket);
+
+    if (spec) {
+      const alignmentResult = validator.validateTicketAlignment(ticket, spec);
+      return {
+        valid: completenessResult.valid && alignmentResult.valid,
+        issues: [...completenessResult.issues, ...alignmentResult.issues],
+      };
+    }
+
+    const references = this.extractReferences(ticket.content);
+    const issues: ValidationResult['issues'] = [];
+
+    const specRef = references.find(r => r.type === 'spec');
+    if (!specRef) {
+      issues.push({
+        severity: 'warning',
+        message: 'Ticket does not reference a parent spec',
+        field: 'content',
+      });
+    } else {
+      const resolved = await this.resolveReference(specRef);
+      if (!resolved.exists) {
+        issues.push({
+          severity: 'error',
+          message: `Referenced spec ${specRef.id} does not exist`,
+          field: 'content',
+        });
+      }
+    }
+
+    const fileRefs = references.filter(r => r.type === 'file');
+    for (const fileRef of fileRefs) {
+      const resolved = await this.resolveReference(fileRef);
+      if (!resolved.exists) {
+        issues.push({
+          severity: 'warning',
+          message: `File reference ${fileRef.id} does not exist`,
+          field: 'content',
+        });
+      }
+    }
+
+    return {
+      valid: completenessResult.valid && !issues.some(i => i.severity === 'error'),
+      issues: [...completenessResult.issues, ...issues],
+    };
   }
 }
