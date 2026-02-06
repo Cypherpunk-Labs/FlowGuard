@@ -1,139 +1,102 @@
-# FlowGuard Testing Infrastructure
+# FlowGuard Testing Documentation
 
-This directory contains the test suite for the FlowGuard VS Code extension.
+This directory contains the complete test suite for the FlowGuard VS Code extension.
 
-## Test Organization
+## Test Structure
 
 ```
 tests/
-├── setup.ts                 # Global test setup and VS Code API mocks
-├── utils/
-│   ├── mocks.ts            # Mock factories for VS Code, LLM, storage, etc.
-│   └── fixtures.ts         # Test data factories (Epic, Spec, Ticket, etc.)
-├── unit/
-│   ├── models/
-│   │   ├── models.test.ts       # Model interface tests
-│   │   └── validators.test.ts   # Validation function tests
-│   ├── storage/
-│   │   └── fileSystem.test.ts   # File system utility tests
-│   ├── planning/
-│   │   ├── ClarificationEngine.test.ts
-│   │   ├── TicketGenerator.test.ts
-│   │   └── TicketValidator.test.ts
-│   └── verification/
-│       └── DiffAnalyzer.test.ts
-└── integration/
-    └── (future integration tests)
+├── integration/           # Integration tests with real VS Code APIs
+│   ├── workflows/        # Complete workflow tests
+│   ├── storage/          # File system operations
+│   ├── commands/         # VS Code command execution
+│   └── ui/              # UI provider tests
+├── e2e/                  # End-to-end tests with Playwright
+│   ├── utils/           # VS Code automation helpers
+│   └── fixtures/        # Test workspace utilities
+├── performance/          # Performance benchmarks
+├── unit/                # Unit tests (existing)
+└── utils/               # Test utilities and mocks
 ```
 
 ## Running Tests
 
-### All Tests
-```bash
-npm test
-```
-
-### Watch Mode
-```bash
-npm run test:watch
-```
-
-### With UI
-```bash
-npm run test:ui
-```
-
-### Coverage Report
-```bash
-npm run test:coverage
-npm run test:coverage:open  # Open HTML report in browser
-```
-
-### Unit Tests Only
+### Unit Tests
 ```bash
 npm run test:unit
 ```
 
-## Test Configuration
+### Integration Tests
+Integration tests use the VS Code Extension Test Runner to test against real VS Code APIs in a headless environment.
 
-Configuration is in `vitest.config.ts`:
-- Test environment: Node.js (VS Code extension runtime)
-- Coverage provider: v8
-- Coverage threshold: 60%
-- Test timeout: 10000ms (for LLM-related tests)
+```bash
+# Run all integration tests
+npm run test:integration
+
+# Watch mode
+npm run test:integration:watch
+```
+
+### E2E Tests
+E2E tests use Playwright to validate critical user journeys through the UI.
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Interactive UI mode
+npm run test:e2e:ui
+
+# Debug mode
+npm run test:e2e:debug
+```
+
+### Performance Tests
+```bash
+npm run test:performance
+```
+
+### All Tests
+```bash
+# Run all test suites
+npm run test:all
+
+# CI mode (unit + integration only)
+npm run test:ci
+```
+
+## Test Coverage Targets
+
+| Test Type | Coverage Target | Scope |
+|-----------|----------------|-------|
+| Unit Tests | 60% | Core models, storage, planning, verification |
+| Integration Tests | 30% | Complete workflows, command execution, UI providers |
+| E2E Tests | 10% | Critical user journeys (onboarding, development cycle) |
+
+## Performance Targets
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Extension Activation | < 500ms | Time from activation event to `activate()` completion |
+| Codebase Scan (1000 files) | < 5s | Time to scan and index 1000 source files |
+| Spec Generation | < 10s | Time to generate spec from user goal (excluding LLM latency) |
+| Verification Analysis | < 15s | Time to analyze diff and generate verification report |
+
+## Test Workspace
+
+The `test-workspace/` directory contains sample files used by integration and E2E tests:
+- `.flowguard/epic.json` - Sample epic metadata
+- `.flowguard/specs/` - Sample specs
+- `.flowguard/tickets/` - Sample tickets
+- `src/` - Sample source files
 
 ## Writing New Tests
 
-### Test Structure
-Follow the AAA pattern: Arrange, Act, Assert
+### Integration Tests
+Use real VS Code APIs for file operations and command execution. See `tests/integration/README.md` for detailed guidelines.
 
-```typescript
-describe('ComponentName', () => {
-  describe('methodName', () => {
-    it('should do something when condition', () => {
-      // Arrange
-      const input = ...;
-      const component = new Component();
+### E2E Tests
+Use Playwright to interact with VS Code's UI. See `tests/e2e/README.md` for detailed guidelines.
 
-      // Act
-      const result = component.methodName(input);
-
-      // Assert
-      expect(result).toBe(expectedValue);
-    });
-  });
-});
-```
-
-### Using Mocks
-Import from `tests/utils/mocks.ts`:
-
-```typescript
-import { createMockLLMProvider, createMockStorage } from '../utils/mocks';
-
-const mockLLM = createMockLLMProvider();
-const mockStorage = createMockStorage();
-```
-
-### Using Fixtures
-Import from `tests/utils/fixtures.ts`:
-
-```typescript
-import { createTestEpic, createTestSpec, createTestTicket } from '../utils/fixtures';
-
-const epic = createTestEpic({ title: 'Custom Title' });
-const ticket = createTestTicket({ priority: 'high' });
-```
-
-## Mock Patterns
-
-### VS Code API
-The `tests/setup.ts` file provides a global mock for the VS Code API. Common mocked APIs:
-- `workspace.fs` - File system operations
-- `window.showInformationMessage` - Notifications
-- `commands.registerCommand` - Command registration
-- `Uri` - URI construction
-
-### LLM Provider
-Use `createMockLLMProvider()` to mock LLM responses. The mock returns structured responses based on the schema provided.
-
-### File System
-Use `vi.mock('fs', ...)` for file system tests, or use the `fileExists`, `readFile`, etc. utilities from `src/core/storage/fileSystem`.
-
-## Coverage Requirements
-
-- Target: 60% code coverage
-- Coverage is measured for: statements, branches, functions, lines
-- Excluded from coverage:
-  - `src/ui/**` (webview code)
-  - `**/__tests__/**`
-  - `**/*.d.ts`
-
-## Best Practices
-
-1. **Descriptive test names**: "should [expected behavior] when [condition]"
-2. **Isolate tests**: Each test should be independent
-3. **Clean up resources**: Use `afterEach` hooks for cleanup
-4. **Mock external dependencies**: File system, LLM, VS Code API
-5. **Test edge cases**: Empty values, null, undefined, invalid types
-6. **Use fixtures**: Reusable test data for consistency
+### Performance Tests
+Use the `performance.now()` API for high-resolution timing. See `tests/performance/` for examples.
