@@ -4,7 +4,7 @@ import {
   Spec, SpecStatus,
   Ticket, TicketStatus,
   Execution, ExecutionStatus, AgentType,
-  Verification, Severity, IssueCategory
+  Verification, Severity, IssueCategory, ApprovalStatus, FixSuggestion
 } from './index';
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -157,19 +157,78 @@ export function validateExecution(data: unknown): Execution {
   };
 }
 
+function validateFixSuggestion(data: unknown): FixSuggestion | undefined {
+  if (!data) return undefined;
+  if (!isObject(data)) {
+    throw new Error('FixSuggestion must be an object');
+  }
+  const obj = data as Record<string, unknown>;
+
+  return {
+    description: getString(obj, 'description', true) || '',
+    codeExample: getString(obj, 'codeExample'),
+    automatedFix: typeof obj.automatedFix === 'boolean' ? obj.automatedFix : undefined,
+    steps: getArray<string>(obj, 'steps') || []
+  };
+}
+
 export function validateVerification(data: unknown): Verification {
   if (!isObject(data)) {
     throw new Error('Verification data must be an object');
   }
   const obj = data as Record<string, unknown>;
 
+  const issues = getArray<Record<string, unknown>>(obj, 'issues') || [];
+  const validatedIssues = issues.map(issue => {
+    const category = getEnum<IssueCategory>(issue, 'category', ['security', 'performance', 'style', 'logic', 'documentation', 'testing', 'architecture']) || 'logic';
+    return {
+      id: getString(issue, 'id', true) || '',
+      severity: getEnum<Severity>(issue, 'severity', ['Critical', 'High', 'Medium', 'Low']) || 'Medium',
+      category,
+      file: getString(issue, 'file', true) || '',
+      line: typeof issue.line === 'number' ? issue.line : undefined,
+      message: getString(issue, 'message', true) || '',
+      suggestion: getString(issue, 'suggestion'),
+      code: getString(issue, 'code'),
+      specRequirementId: getString(issue, 'specRequirementId'),
+      fixSuggestion: validateFixSuggestion(issue.fixSuggestion)
+    };
+  });
+
+  const summary = obj.summary as Record<string, unknown> | undefined;
+  let validatedSummary: Verification['summary'];
+  
+  if (summary) {
+    const issueCounts = summary.issueCounts as Record<string, number> | undefined;
+    validatedSummary = {
+      passed: typeof summary.passed === 'boolean' ? summary.passed : false,
+      totalIssues: typeof summary.totalIssues === 'number' ? summary.totalIssues : 0,
+      issueCounts: {
+        Critical: issueCounts?.Critical || 0,
+        High: issueCounts?.High || 0,
+        Medium: issueCounts?.Medium || 0,
+        Low: issueCounts?.Low || 0
+      },
+      recommendation: getString(summary, 'recommendation') || '',
+      approvalStatus: getEnum<ApprovalStatus>(summary, 'approvalStatus', ['approved', 'approved_with_conditions', 'changes_requested', 'pending']) || 'pending'
+    };
+  } else {
+    validatedSummary = {
+      passed: false,
+      totalIssues: 0,
+      issueCounts: { Critical: 0, High: 0, Medium: 0, Low: 0 },
+      recommendation: '',
+      approvalStatus: 'pending'
+    };
+  }
+
   return {
     id: getString(obj, 'id', true) || '',
     epicId: getString(obj, 'epicId', true) || '',
     diffSource: obj.diffSource as Verification['diffSource'],
     analysis: obj.analysis as Verification['analysis'],
-    issues: getArray(obj, 'issues') || [],
-    summary: obj.summary as Verification['summary'],
+    issues: validatedIssues,
+    summary: validatedSummary,
     createdAt: getDate(obj, 'createdAt', true) || new Date()
   };
 }

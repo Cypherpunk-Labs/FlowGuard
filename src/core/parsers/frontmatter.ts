@@ -45,7 +45,7 @@ const ENUM_VALIDATORS: Record<string, EnumType[]> = {
   TicketStatus: ['todo', 'in_progress', 'in_review', 'done', 'blocked'],
   AgentType: ['cursor', 'claude', 'windsurf', 'cline', 'aider', 'custom'],
   ExecutionStatus: ['pending', 'in_progress', 'completed', 'failed'],
-  Severity: ['error', 'warning', 'info'],
+  Severity: ['Critical', 'High', 'Medium', 'Low'],
   IssueCategory: ['security', 'performance', 'style', 'logic', 'documentation', 'testing', 'architecture'],
   FileChangeStatus: ['added', 'modified', 'deleted'],
   ChangeType: ['addition', 'deletion', 'modification']

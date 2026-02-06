@@ -45,9 +45,18 @@ export interface VerificationIssue {
   message: string;
   suggestion?: string;
   code?: string;
+  specRequirementId?: string;
+  fixSuggestion?: FixSuggestion;
 }
 
-export type Severity = 'error' | 'warning' | 'info';
+export interface FixSuggestion {
+  description: string;
+  codeExample?: string;
+  automatedFix?: boolean;
+  steps: string[];
+}
+
+export type Severity = 'Critical' | 'High' | 'Medium' | 'Low';
 
 export type IssueCategory =
   | 'security'
@@ -69,4 +78,7 @@ export interface VerificationSummary {
   totalIssues: number;
   issueCounts: Record<Severity, number>;
   recommendation: string;
+  approvalStatus: ApprovalStatus;
 }
+
+export type ApprovalStatus = 'approved' | 'approved_with_conditions' | 'changes_requested' | 'pending';

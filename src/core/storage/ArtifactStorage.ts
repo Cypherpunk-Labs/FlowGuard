@@ -286,6 +286,89 @@ export class ArtifactStorage {
     log(`Deleted execution: ${id}`);
   }
 
+  async saveVerification(verification: import('../models/Verification').Verification): Promise<void> {
+    const filePath = this.getVerificationPath(verification.id);
+    const frontmatter = {
+      id: verification.id,
+      epicId: verification.epicId,
+      diffSource: verification.diffSource,
+      analysis: {
+        totalFiles: verification.analysis.totalFiles,
+        totalLines: verification.analysis.totalLines,
+        additions: verification.analysis.additions,
+        deletions: verification.analysis.deletions
+      },
+      summary: verification.summary,
+      createdAt: verification.createdAt.toISOString()
+    };
+    const content = JSON.stringify({
+      issues: verification.issues,
+      changedFiles: verification.analysis.changedFiles
+    }, null, 2);
+    const markdown = serializeFrontmatter(frontmatter, content);
+    await writeFile(filePath, markdown);
+    log(`Saved verification: ${verification.id}`);
+  }
+
+  async loadVerification(id: string): Promise<import('../models/Verification').Verification> {
+    const filePath = this.getVerificationPath(id);
+    const content = await readFile(filePath);
+    const { data, content: markdownContent } = parseFrontmatter<Record<string, unknown>>(content, { validate: true });
+
+    if (!data.id || !data.epicId) {
+      throw new ValidationError('Verification is missing required fields: id or epicId');
+    }
+
+    const jsonContent = JSON.parse(markdownContent || '{}');
+
+    const verification: import('../models/Verification').Verification = {
+      id: data.id as string,
+      epicId: data.epicId as string,
+      diffSource: data.diffSource as import('../models/Verification').Verification['diffSource'],
+      analysis: {
+        totalFiles: (data.analysis as Record<string, unknown>)?.totalFiles as number || 0,
+        totalLines: (data.analysis as Record<string, unknown>)?.totalLines as number || 0,
+        additions: (data.analysis as Record<string, unknown>)?.additions as number || 0,
+        deletions: (data.analysis as Record<string, unknown>)?.deletions as number || 0,
+        changedFiles: jsonContent.changedFiles || []
+      },
+      issues: jsonContent.issues || [],
+      summary: data.summary as import('../models/Verification').Verification['summary'],
+      createdAt: new Date(data.createdAt as string)
+    };
+
+    return verification;
+  }
+
+  async listVerifications(epicId?: string): Promise<import('../models/Verification').Verification[]> {
+    const files = await listFiles(this.getVerificationsDir(), /^verification-.+\.md$/);
+    const verifications: import('../models/Verification').Verification[] = [];
+
+    for (const file of files) {
+      const id = file.replace('verification-', '').replace('.md', '');
+      try {
+        const verification = await this.loadVerification(id);
+        if (!epicId || verification.epicId === epicId) {
+          verifications.push(verification);
+        }
+      } catch (err) {
+        error(`Failed to load verification ${id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
+    return verifications;
+  }
+
+  async deleteVerification(id: string): Promise<void> {
+    const filePath = this.getVerificationPath(id);
+    const exists = await fileExists(filePath);
+    if (!exists) {
+      throw new NotFoundError('verification', id);
+    }
+    await deleteFile(filePath);
+    log(`Deleted verification: ${id}`);
+  }
+
   getArtifactPath(type: ArtifactType, id: string): string {
     switch (type) {
       case 'spec':
