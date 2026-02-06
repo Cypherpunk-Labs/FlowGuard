@@ -1,0 +1,80 @@
+/* Global styles for FlowGuard sidebar */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background);
+}
+
+/* Status badge colors using VS Code CSS variables */
+.status-draft {
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.status-in_review {
+  background-color: var(--vscode-editorWarning-background, #cca70020);
+  color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.status-approved,
+.status-done,
+.status-completed {
+  background-color: var(--vscode-testing-iconPassed, #388a3420);
+  color: var(--vscode-testing-iconPassed, #388a34);
+}
+
+.status-archived {
+  background-color: var(--vscode-disabledForeground, #80808020);
+  color: var(--vscode-disabledForeground, #808080);
+}
+
+.status-todo,
+.status-pending {
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.status-in_progress {
+  background-color: var(--vscode-progressBar-background, #0078d420);
+  color: var(--vscode-progressBar-background, #0078d4);
+}
+
+.status-blocked,
+.status-failed {
+  background-color: var(--vscode-editorError-background, #f8514920);
+  color: var(--vscode-editorError-foreground, #f85149);
+}
+
+/* Focus styles for accessibility */
+button:focus,
+[role="button"]:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vscode-scrollbarSlider-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-hoverBackground);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-activeBackground);
+}

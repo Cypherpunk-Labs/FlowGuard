@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { ArtifactStorage } from './core/storage/ArtifactStorage';
+import { EpicMetadataManager } from './core/storage/EpicMetadataManager';
+import { SidebarProvider } from './ui/sidebar/SidebarProvider';
 import { createProvider } from './llm/ProviderFactory';
 import { getLLMConfig } from './llm/config';
 import { LLMProviderType } from './llm/types';
@@ -7,6 +9,8 @@ import { ClarificationEngine, SpecGenerator, CodebaseExplorer } from './planning
 
 let extensionPath: string;
 let storage: ArtifactStorage | null = null;
+let epicMetadataManager: EpicMetadataManager | null = null;
+let sidebarProvider: SidebarProvider | null = null;
 let clarificationEngine: ClarificationEngine | null = null;
 let specGenerator: SpecGenerator | null = null;
 let codebaseExplorer: CodebaseExplorer | null = null;
@@ -42,6 +46,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     storage = new ArtifactStorage(workspaceRoot);
     await storage.initialize();
 
+    epicMetadataManager = new EpicMetadataManager(workspaceRoot);
+
     const providerType = getProviderType();
     const llmConfig = getLLMConfig();
     const provider = createProvider(providerType, llmConfig);
@@ -54,6 +60,41 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.workspaceState.update('specGenerator', specGenerator);
     context.workspaceState.update('clarificationEngine', clarificationEngine);
     context.workspaceState.update('codebaseExplorer', codebaseExplorer);
+
+    // Register sidebar provider
+    sidebarProvider = new SidebarProvider(
+      context.extensionUri,
+      storage,
+      epicMetadataManager
+    );
+
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider('flowguard.sidebarView', sidebarProvider)
+    );
+
+    // Register commands
+    context.subscriptions.push(
+      vscode.commands.registerCommand('flowguard.createSpec', async () => {
+        try {
+          await sidebarProvider?.createSpec();
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to create spec: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }),
+      vscode.commands.registerCommand('flowguard.createTicket', async () => {
+        try {
+          await sidebarProvider?.createTicket();
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to create ticket: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }),
+      vscode.commands.registerCommand('flowguard.refreshSidebar', () => {
+        sidebarProvider?.refresh();
+      }),
+      vscode.commands.registerCommand('flowguard.initializeEpic', async () => {
+        vscode.window.showInformationMessage('Initialize Epic - Coming Soon');
+      })
+    );
 
     const outputChannel = vscode.window.createOutputChannel('FlowGuard');
     outputChannel.appendLine('FlowGuard initialized successfully');
@@ -91,4 +132,8 @@ export function getSpecGenerator(): SpecGenerator | null {
 
 export function getCodebaseExplorer(): CodebaseExplorer | null {
   return codebaseExplorer;
+}
+
+export function getSidebarProvider(): SidebarProvider | null {
+  return sidebarProvider;
 }
