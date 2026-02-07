@@ -1,0 +1,7 @@
+This is a placeholder for the FlowGuard file type icons.
+
+Icons needed for:
+- Spec files (document with flow symbol)
+- Ticket files (task/checklist symbol)
+- Execution files (play/execute symbol)
+- Template files (template/document symbol)

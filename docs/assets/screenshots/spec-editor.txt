@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard spec editor screenshot.
+
+The spec editor shows:
+- YAML frontmatter section with metadata fields
+- Rich text editor for spec content
+- Preview pane showing rendered markdown
+- Diagram preview area for embedded diagrams
+- Status indicator and action buttons
+- Reference panel showing linked tickets and executions
+- Command palette integration for spec actions

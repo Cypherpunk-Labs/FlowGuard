@@ -1,0 +1,9 @@
+This is a placeholder for the FlowGuard setup wizard screenshot.
+
+The setup wizard shows:
+- Welcome message and overview
+- LLM provider selection (OpenAI, Anthropic, Ollama, etc.)
+- API key input fields
+- Configuration import options
+- Quick start guide and documentation links
+- Begin setup button

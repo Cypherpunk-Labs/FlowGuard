@@ -1,0 +1,14 @@
+{
+  "id": "flowguard.security",
+  "name": "Security Verification Plugin",
+  "version": "1.0.0",
+  "description": "Detects hardcoded secrets and security vulnerabilities",
+  "author": "FlowGuard Team",
+  "main": "index.js",
+  "contributes": {
+    "verificationRules": ["hardcoded-secrets", "sql-injection", "xss-vulnerability"]
+  },
+  "engines": {
+    "flowguard": "^0.1.0"
+  }
+}

@@ -1,0 +1,647 @@
+{
+  "name": "flowguard",
+  "publisher": "mkemp",
+  "displayName": "FlowGuard - AI-Powered Development Workflow Manager",
+  "description": "AI-powered development workflow manager for epic/spec/ticket management",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "FlowGuard",
+      "properties": {
+        "flowguard.llm.provider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "local"
+          ],
+          "default": "openai",
+          "description": "LLM provider to use. Can be overridden by FLOWGUARD_LLM_PROVIDER environment variable."
+        },
+        "flowguard.llm.model": {
+          "type": "string",
+          "description": "Model name (e.g., gpt-4-turbo-preview, claude-3-5-sonnet-20241022)"
+        },
+        "flowguard.llm.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for LLM generation. Higher values produce more creative outputs."
+        },
+        "flowguard.llm.baseUrl": {
+          "type": "string",
+          "description": "Base URL for local LLM provider. Only applicable when provider is 'local'."
+        },
+        "flowguard.llm.apiKey": {
+          "type": "string",
+          "description": "API key for LLM provider. For security, it's recommended to use SecretStorage via the 'Enter API Key' command instead.",
+          "scope": "application",
+          "markdownDescription": "API key for the LLM provider. **Recommended:** Use the `FlowGuard: Enter API Key` command to store securely in VS Code SecretStorage instead of setting this directly."
+        },
+        "flowguard.llm.maxTokens": {
+          "type": "integer",
+          "default": 4096,
+          "minimum": 100,
+          "maximum": 128000,
+          "description": "Maximum number of tokens for LLM responses. Higher values allow longer responses but increase latency."
+        },
+        "flowguard.llm.timeout": {
+          "type": "integer",
+          "default": 60000,
+          "minimum": 5000,
+          "maximum": 300000,
+          "description": "Timeout for LLM requests in milliseconds."
+        },
+        "flowguard.llm.retryAttempts": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Number of retry attempts for failed LLM requests."
+        },
+        "flowguard.llm.streamResponses": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable streaming responses from LLM for faster initial output."
+        },
+        "flowguard.templates.defaultAgent": {
+          "type": "string",
+          "enum": [
+            "cursor",
+            "claude",
+            "windsurf",
+            "cline",
+            "aider",
+            "custom"
+          ],
+          "default": "cursor",
+          "description": "Default agent template to use for handoff documents."
+        },
+        "flowguard.templates.customPath": {
+          "type": "string",
+          "description": "Path to custom template directory. Templates in this directory will override defaults."
+        },
+        "flowguard.templates.includeCodebaseContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include codebase context in handoff documents."
+        },
+        "flowguard.templates.maxCodebaseFiles": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Maximum number of files to include as codebase context in templates."
+        },
+        "flowguard.editor.autoSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save edits in FlowGuard editors."
+        },
+        "flowguard.editor.autoSaveDelay": {
+          "type": "integer",
+          "default": 30000,
+          "minimum": 1000,
+          "maximum": 300000,
+          "description": "Delay in milliseconds before auto-saving edited files."
+        },
+        "flowguard.editor.enableDiagramPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable preview diagrams in editor views."
+        },
+        "flowguard.codebase.maxFilesToScan": {
+          "type": "integer",
+          "default": 1000,
+          "minimum": 100,
+          "maximum": 10000,
+          "description": "Maximum number of files to scan when analyzing codebase."
+        },
+        "flowguard.codebase.excludePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            "dist",
+            "build",
+            ".git",
+            ".flowguard"
+          ],
+          "description": "Glob patterns to exclude from codebase scanning."
+        },
+        "flowguard.codebase.includePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*.ts",
+            "**/*.js",
+            "**/*.py",
+            "**/*.java",
+            "**/*.go",
+            "**/*.rs"
+          ],
+          "description": "Glob patterns to include in codebase scanning."
+        },
+        "flowguard.codebase.enableIncrementalScan": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable incremental scanning to improve performance on subsequent scans."
+        },
+        "flowguard.verification.autoVerifyOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run verification when files are saved."
+        },
+        "flowguard.verification.minimumSeverity": {
+          "type": "string",
+          "enum": [
+            "Critical",
+            "High",
+            "Medium",
+            "Low"
+          ],
+          "default": "Medium",
+          "description": "Minimum severity level to report in verification results."
+        },
+        "flowguard.verification.enableAutoFix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic fixing of verified issues when possible."
+        },
+        "flowguard.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable anonymous telemetry to help improve FlowGuard."
+        },
+        "flowguard.telemetry.includeErrorReports": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include error stack traces in telemetry reports."
+        },
+        "flowguard.general.logLevel": {
+          "type": "string",
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "WARN",
+            "ERROR"
+          ],
+          "default": "INFO",
+          "description": "Logging level for FlowGuard output channel."
+        },
+        "flowguard.general.showWelcomeOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome message when FlowGuard extension activates."
+        },
+        "flowguard.plugins.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the plugin system for FlowGuard."
+        },
+        "flowguard.plugins.autoLoad": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically load plugins from .flowguard/plugins/ on startup."
+        },
+        "flowguard.plugins.verificationRules": {
+          "type": [
+            "object"
+          ],
+          "default": {},
+          "description": "Enable/disable specific verification rules by ID. Keys are rule IDs, values are booleans."
+        },
+        "flowguard.plugins.trustedPlugins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of trusted plugin IDs that can execute without confirmation."
+        },
+        "flowguard.plugins.requireSignature": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require plugins to be signed (future feature)."
+        },
+        "flowguard.plugins.allowRemotePlugins": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow loading plugins from remote URLs (future feature)."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "flowguard-sidebar",
+          "title": "FlowGuard",
+          "icon": "resources/flowguard-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "flowguard-sidebar": [
+        {
+          "id": "flowguard.sidebarView",
+          "name": "FlowGuard",
+          "type": "webview",
+          "contextualTitle": "FlowGuard Manager"
+        },
+        {
+          "id": "flowguard.verificationView",
+          "name": "Verification Results",
+          "type": "webview",
+          "contextualTitle": "Verification Results"
+        },
+        {
+          "id": "flowguard.executionView",
+          "name": "Execution Tracking",
+          "type": "webview",
+          "contextualTitle": "Execution Tracking"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "flowguard.sidebarView",
+        "contents": "No epic initialized.\n[Initialize Epic](command:flowguard.initializeEpic)"
+      }
+    ],
+    "commands": [
+      {
+        "command": "flowguard.createSpec",
+        "title": "New Spec",
+        "icon": "$(add)"
+      },
+      {
+        "command": "flowguard.createTicket",
+        "title": "New Ticket",
+        "icon": "$(add)"
+      },
+      {
+        "command": "flowguard.refreshSidebar",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "flowguard.showVerification",
+        "title": "Show Verification Results"
+      },
+      {
+        "command": "flowguard.showExecution",
+        "title": "Show Execution Details"
+      },
+      {
+        "command": "flowguard.applyAutoFix",
+        "title": "Apply Auto-Fix"
+      },
+      {
+        "command": "flowguard.ignoreIssue",
+        "title": "Ignore Issue"
+      },
+      {
+        "command": "flowguard.initializeEpic",
+        "title": "Initialize Epic"
+      },
+      {
+        "command": "flowguard.createEpic",
+        "title": "FlowGuard: Create Epic",
+        "icon": "$(project)"
+      },
+      {
+        "command": "flowguard.generateHandoff",
+        "title": "FlowGuard: Generate Handoff",
+        "icon": "$(export)"
+      },
+      {
+        "command": "flowguard.verifyChanges",
+        "title": "FlowGuard: Verify Changes",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "flowguard.verifyCurrentFile",
+        "title": "FlowGuard: Verify Current File",
+        "icon": "$(check)"
+      },
+      {
+        "command": "flowguard.verifyCommit",
+        "title": "FlowGuard: Verify Commit"
+      },
+      {
+        "command": "flowguard.openSpec",
+        "title": "FlowGuard: Open Spec"
+      },
+      {
+        "command": "flowguard.openTicket",
+        "title": "FlowGuard: Open Ticket"
+      },
+      {
+        "command": "flowguard.approveSpec",
+        "title": "FlowGuard: Approve Spec",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "flowguard.assignTicket",
+        "title": "FlowGuard: Assign Ticket"
+      },
+      {
+        "command": "flowguard.copyHandoffToClipboard",
+        "title": "FlowGuard: Copy Handoff to Clipboard",
+        "icon": "$(clippy)"
+      },
+      {
+        "command": "flowguard.previewHandoff",
+        "title": "FlowGuard: Preview Handoff"
+      },
+      {
+        "command": "flowguard.goToSpec",
+        "title": "FlowGuard: Go to Spec"
+      },
+      {
+        "command": "flowguard.goToTicket",
+        "title": "FlowGuard: Go to Ticket"
+      },
+      {
+        "command": "flowguard.listPlugins",
+        "title": "FlowGuard: List Plugins",
+        "icon": "$(extensions)"
+      },
+      {
+        "command": "flowguard.reloadPlugin",
+        "title": "FlowGuard: Reload Plugin"
+      },
+      {
+        "command": "flowguard.installPlugin",
+        "title": "FlowGuard: Install Plugin",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "flowguard.uninstallPlugin",
+        "title": "FlowGuard: Uninstall Plugin"
+      },
+      {
+        "command": "flowguard.reloadAllPlugins",
+        "title": "FlowGuard: Reload All Plugins",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "flowguard.startTutorial",
+        "title": "FlowGuard: Start Tutorial"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "flowguard.refreshSidebar",
+          "when": "view == flowguard.sidebarView",
+          "group": "navigation"
+        },
+        {
+          "command": "flowguard.createSpec",
+          "when": "view == flowguard.sidebarView",
+          "group": "navigation"
+        },
+        {
+          "command": "flowguard.createTicket",
+          "when": "view == flowguard.sidebarView",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "flowguard.verifyCurrentFile",
+          "when": "editorTextFocus",
+          "group": "flowguard@1"
+        },
+        {
+          "command": "flowguard.approveSpec",
+          "when": "resourceFilename =~ /spec-.*\\.md$/",
+          "group": "flowguard@2"
+        },
+        {
+          "command": "flowguard.goToSpec",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/",
+          "group": "flowguard@3"
+        },
+        {
+          "command": "flowguard.goToTicket",
+          "when": "resourceFilename =~ /spec-.*\\.md$/",
+          "group": "flowguard@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "flowguard.verifyChanges",
+          "when": "explorerResourceIsFolder && resourcePath =~ /\\.flowguard/",
+          "group": "flowguard@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "flowguard.approveSpec",
+          "when": "resourceFilename =~ /spec-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.assignTicket",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.goToSpec",
+          "when": "resourceFilename =~ /ticket-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.goToTicket",
+          "when": "resourceFilename =~ /spec-.*\\.md$/"
+        },
+        {
+          "command": "flowguard.verifyCurrentFile",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "flowguard.showVerification",
+        "key": "Cmd+Shift+V",
+        "mac": "Cmd+Shift+V",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.showExecution",
+        "key": "Cmd+Shift+X",
+        "mac": "Cmd+Shift+X",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.createEpic",
+        "key": "Cmd+Shift+O",
+        "mac": "Cmd+Shift+O"
+      },
+      {
+        "command": "flowguard.createSpec",
+        "key": "Cmd+Shift+D",
+        "mac": "Cmd+Shift+D"
+      },
+      {
+        "command": "flowguard.createTicket",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t"
+      },
+      {
+        "command": "flowguard.generateHandoff",
+        "key": "ctrl+shift+h",
+        "mac": "cmd+shift+h"
+      },
+      {
+        "command": "flowguard.verifyChanges",
+        "key": "Cmd+Shift+K",
+        "mac": "Cmd+Shift+K"
+      },
+      {
+        "command": "flowguard.verifyCurrentFile",
+        "key": "ctrl+alt+v",
+        "mac": "cmd+alt+v",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "flowguard.openSpec",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s"
+      },
+      {
+        "command": "flowguard.openTicket",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t"
+      },
+      {
+        "command": "flowguard.refreshSidebar",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "flowguard.approveSpec",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "resourceFilename =~ /spec-.*\\.md$/"
+      },
+      {
+        "command": "flowguard.goToSpec",
+        "key": "ctrl+shift+g s",
+        "mac": "cmd+shift+g s",
+        "when": "resourceFilename =~ /ticket-.*\\.md$/"
+      },
+      {
+        "command": "flowguard.goToTicket",
+        "key": "ctrl+shift+g t",
+        "mac": "cmd+shift+g t",
+        "when": "resourceFilename =~ /spec-.*\\.md$/"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "flowguard.specEditor",
+        "displayName": "FlowGuard Spec Editor",
+        "selector": [
+          {
+            "filenamePattern": "**/specs/spec-*.md"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "flowguard.ticketEditor",
+        "displayName": "FlowGuard Ticket Editor",
+        "selector": [
+          {
+            "filenamePattern": "**/tickets/ticket-*.md"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "webpack --config webpack.config.js --mode production && webpack --config webpack.webview.config.js --mode production",
+    "watch": "webpack --config webpack.config.js --mode development --watch & webpack --config webpack.webview.config.js --mode development --watch",
+    "pretest": "npm run compile",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:coverage:open": "open coverage/index.html",
+    "test:vitest": "vitest run",
+    "test:vitest:watch": "vitest watch",
+    "test:vitest:coverage": "vitest run --coverage",
+    "compile:tests": "tsc -p tests/tsconfig.json",
+    "test:integration": "npm run compile:tests && node ./out/tests/integration/runTest.js",
+    "test:integration:watch": "npm run compile:tests && npm run test:integration -- --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:performance": "npm run compile:tests && npm run test:integration -- --grep Performance",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:ci": "npm run test:unit && npm run test:integration",
+    "package": "npm run compile && npx vsce package",
+    "docs:lint": "markdownlint docs/**/*.md",
+    "docs:validate-links": "node scripts/validate-docs-links.js",
+    "docs:test": "node scripts/test-documentation.js",
+    "docs:test:all": "npm run docs:lint && npm run docs:validate-links && npm run docs:test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "gray-matter": "^4.0.3",
+    "openai": "^4.0.0",
+    "simple-git": "^3.19.0",
+    "svelte": "^4.0.0",
+    "tree-sitter": "^0.21.0",
+    "tree-sitter-javascript": "^0.21.0",
+    "tree-sitter-python": "^0.21.0",
+    "tree-sitter-typescript": "^0.21.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "@playwright/test": "^1.58.2",
+    "@types/glob": "^8.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "@vscode/test-electron": "^2.5.2",
+    "css-loader": "^6.0.0",
+    "happy-dom": "^20.5.0",
+    "html-webpack-plugin": "^5.0.0",
+    "jest": "^30.2.0",
+    "markdownlint-cli": "^0.47.0",
+    "mocha": "^11.7.5",
+    "playwright": "^1.58.2",
+    "style-loader": "^3.0.0",
+    "svelte-loader": "^3.1.0",
+    "svelte-preprocess": "^5.0.0",
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0"
+  }
+}

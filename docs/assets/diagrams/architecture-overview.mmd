@@ -1,0 +1,33 @@
+```mermaid
+graph TB
+    A[VS Code Extension] --> B[Core Services]
+    A --> C[UI Components]
+    A --> D[Commands]
+    A --> E[Configuration]
+    
+    B --> F[Artifact Storage]
+    B --> G[LLM Providers]
+    B --> H[Codebase Explorer]
+    B --> I[Reference Resolver]
+    B --> J[Plugin Manager]
+    
+    C --> K[Sidebar View]
+    C --> L[Spec Editor]
+    C --> M[Ticket Editor]
+    C --> N[Verification View]
+    C --> O[Execution View]
+    
+    D --> P[Epic Commands]
+    D --> Q[Spec Commands]
+    D --> R[Ticket Commands]
+    D --> S[Verification Commands]
+    D --> T[Handoff Commands]
+    
+    E --> U[Settings Manager]
+    E --> V[Secure Storage]
+    
+    J --> W[Plugin System]
+    W --> X[Verification Rules]
+    W --> Y[Agent Integrations]
+    W --> Z[Custom Templates]
+```

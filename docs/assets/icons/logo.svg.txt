@@ -1,0 +1,8 @@
+This is a placeholder for the FlowGuard logo in SVG format.
+
+The logo should feature:
+- Modern, clean design
+- Blue color scheme (representing trust and technology)
+- Abstract representation of flow/streams
+- Text "FlowGuard" alongside or below the icon
+- Scalable vector format for use at any size

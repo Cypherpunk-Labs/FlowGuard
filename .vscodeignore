@@ -1,0 +1,8 @@
+node_modules/
+*.vsix
+.vscode-test/
+.git/
+*.md
+!README.md
+src/
+test/

@@ -1,0 +1,8 @@
+This is a placeholder for the FlowGuard extension icon (128x128 PNG).
+
+The extension icon should:
+- Be recognizable at small sizes
+- Use the same color scheme as the logo
+- Represent the core concept of flow management
+- Follow VS Code extension icon guidelines
+- Be clear and distinct in the marketplace

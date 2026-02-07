@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard execution view screenshot.
+
+The execution view shows:
+- Generated implementation plan
+- Agent selection and configuration
+- Preview of code changes
+- Execution status and progress
+- Error handling and retry options
+- Integration with version control
+- Deployment target selection

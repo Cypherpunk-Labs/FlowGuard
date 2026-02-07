@@ -1,0 +1,9 @@
+This is a placeholder for the "Customizing templates and settings" animated GIF.
+
+The animation should demonstrate:
+1. Navigating to template settings
+2. Creating a new template directory
+3. Customizing a spec template
+4. Testing the template with sample data
+5. Applying the template to a new spec
+6. Verifying the customization works

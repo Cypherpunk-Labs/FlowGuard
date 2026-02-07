@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard verification view screenshot.
+
+The verification view shows:
+- List of identified issues grouped by file
+- Severity indicators (Critical, High, Medium, Low)
+- Issue descriptions with code snippets
+- Auto-fix availability indicators
+- Filter controls by severity and file type
+- Summary statistics and progress indicators
+- Action buttons for applying fixes and ignoring issues

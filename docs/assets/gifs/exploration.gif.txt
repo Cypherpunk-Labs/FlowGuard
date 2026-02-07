@@ -1,0 +1,9 @@
+This is a placeholder for the "Codebase exploration and symbol extraction" animated GIF.
+
+The animation should demonstrate:
+1. Opening the codebase explorer
+2. Setting include/exclude patterns
+3. Running a codebase scan
+4. Viewing extracted symbols and relationships
+5. Filtering results by type or pattern
+6. Navigating to symbol definitions

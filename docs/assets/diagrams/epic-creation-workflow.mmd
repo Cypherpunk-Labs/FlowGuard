@@ -1,0 +1,18 @@
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Command Palette
+    participant E as EpicManager
+    participant F as FileSystem
+    participant S as Sidebar
+
+    U->>C: flowguard.createEpic
+    C->>E: initializeEpic()
+    E->>F: create .flowguard directory
+    E->>F: create epic.json
+    E->>F: create specs/ directory
+    E->>F: create tickets/ directory
+    E->>F: create executions/ directory
+    E->>S: refresh view
+    S-->>U: show new epic in sidebar
+```

@@ -1,0 +1,11 @@
+{
+  "id": "epic-test-001",
+  "title": "Test Epic",
+  "description": "A sample epic for integration testing",
+  "status": "active",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "updatedAt": "2024-01-15T10:00:00Z",
+  "tags": ["integration-test", "sample"],
+  "specIds": ["spec-sample"],
+  "ticketIds": ["ticket-sample"]
+}

@@ -1,0 +1,19 @@
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Command Palette
+    participant H as HandoffManager
+    participant L as LLMProvider
+    participant F as FileSystem
+    participant V as PreviewView
+
+    U->>C: flowguard.generateHandoff
+    C->>H: initializeHandoff()
+    H->>L: generateImplementationPlan()
+    L-->>H: implementation plan
+    H->>F: create execution file
+    H->>V: show preview
+    V-->>U: display generated handoff
+    U->>H: approve handoff
+    H->>F: finalize execution file
+```

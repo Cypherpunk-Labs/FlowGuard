@@ -1,0 +1,9 @@
+This is a placeholder for the FlowGuard sidebar view screenshot.
+
+The sidebar view shows:
+- Epic hierarchy with expandable sections
+- Specs organized by status (Draft, Approved, Implemented)
+- Tickets organized by status (To Do, In Progress, Done, Archived)
+- Quick action buttons for creating new items
+- Search and filter controls
+- Progress indicators for epics and milestones

@@ -1,0 +1,7 @@
+This is a placeholder for the FlowGuard severity level icons.
+
+Icons needed for:
+- Critical (red exclamation mark or stop sign)
+- High (orange warning triangle)
+- Medium (yellow caution symbol)
+- Low (blue info circle)
