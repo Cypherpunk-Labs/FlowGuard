@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { BaseProvider } from '../BaseProvider';
 import { LLMProviderConfig, LLMMessage, LLMOptions, LLMResponse } from '../types';
 
-export class LocalLLMProvider extends BaseProvider {
+export class OpenCodeProvider extends BaseProvider {
   private client: OpenAI | null = null;
 
   constructor(config: LLMProviderConfig) {
@@ -13,8 +13,8 @@ export class LocalLLMProvider extends BaseProvider {
   private getClient(): OpenAI {
     if (!this.client) {
       this.client = new OpenAI({
-        apiKey: this.config.apiKey || 'local',
-        baseURL: this.config.baseUrl,
+        apiKey: this.config.apiKey,
+        baseURL: this.config.baseUrl || 'https://api.opencode.ai/v1',
         timeout: this.config.timeout,
       });
     }
@@ -22,16 +22,16 @@ export class LocalLLMProvider extends BaseProvider {
   }
 
   protected validateConfig(): void {
-    if (!this.config.baseUrl) {
-      throw new Error('Local LLM provider requires a base URL. Set flowguard.llm.baseUrl in settings.');
+    if (!this.config.apiKey) {
+      throw new Error('OpenCode API key is required. Get one at https://opencode.ai and run "FlowGuard: Enter API Key" command to configure.');
     }
   }
 
   async generateText(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse> {
     this.ensureValidated();
     return this.retryWithBackoff(async () => {
-      const model = options?.model || this.config.model || 'llama-3';
-      
+      const model = options?.model || this.config.model || 'opencode-default';
+
       const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
@@ -42,8 +42,9 @@ export class LocalLLMProvider extends BaseProvider {
 
       const choice = response.choices[0];
       if (!choice) {
-        throw new Error('No response choices received from local LLM');
+        throw new Error('No response choices received from OpenCode');
       }
+
       return {
         text: choice.message?.content || '',
         usage: {
@@ -63,8 +64,8 @@ export class LocalLLMProvider extends BaseProvider {
   ): Promise<T> {
     this.ensureValidated();
     return this.retryWithBackoff(async () => {
-      const model = options?.model || this.config.model || 'llama-3';
-      
+      const model = options?.model || this.config.model || 'opencode-default';
+
       const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
@@ -73,15 +74,20 @@ export class LocalLLMProvider extends BaseProvider {
         response_format: { type: 'json_object' },
       });
 
-      const content = response.choices[0]?.message?.content || '';
+      const choice = response.choices[0];
+      if (!choice) {
+        throw new Error('No response choices received from OpenCode');
+      }
+
+      const content = choice.message?.content || '';
       return JSON.parse(content) as T;
     });
   }
 
   async *streamText(messages: LLMMessage[], options?: LLMOptions): AsyncGenerator<string> {
     this.ensureValidated();
-    const model = options?.model || this.config.model || 'llama-3';
-    
+    const model = options?.model || this.config.model || 'opencode-default';
+
     const stream = await this.getClient().chat.completions.create({
       model,
       messages: messages.map(m => ({ role: m.role, content: m.content })),

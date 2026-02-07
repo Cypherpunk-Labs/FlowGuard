@@ -1,4 +1,4 @@
-export type LLMProviderType = 'openai' | 'anthropic' | 'local';
+export type LLMProviderType = 'openai' | 'anthropic' | 'local' | 'openrouter' | 'opencode';
 
 export type AgentType = 'cursor' | 'claude' | 'windsurf' | 'cline' | 'aider' | 'custom';
 

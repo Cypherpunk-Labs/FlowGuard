@@ -71,7 +71,7 @@ class SecureStorage {
   }
 
   async getAllApiKeys(): Promise<Map<LLMProviderType, string>> {
-    const providers: LLMProviderType[] = ['openai', 'anthropic', 'local'];
+    const providers: LLMProviderType[] = ['openai', 'anthropic', 'local', 'openrouter', 'opencode'];
     const keys = new Map<LLMProviderType, string>();
 
     for (const provider of providers) {
@@ -85,7 +85,7 @@ class SecureStorage {
   }
 
   async clearAllApiKeys(): Promise<void> {
-    const providers: LLMProviderType[] = ['openai', 'anthropic', 'local'];
+    const providers: LLMProviderType[] = ['openai', 'anthropic', 'local', 'openrouter', 'opencode'];
 
     for (const provider of providers) {
       await this.deleteApiKey(provider);
@@ -107,9 +107,14 @@ class SecureStorage {
     if (apiKey.startsWith('sk-ant-api03-')) {
       return 'anthropic';
     }
+    if (apiKey.startsWith('sk-or-')) {
+      return 'openrouter';
+    }
     if (apiKey.startsWith('sk-') && apiKey.length > 20) {
       return 'openai';
     }
+    // OpenCode and local LLM keys don't have distinctive prefixes
+    // They should be explicitly configured
     return null;
   }
 
@@ -123,6 +128,15 @@ class SecureStorage {
           break;
         case 'openai':
           apiKey = process.env.OPENAI_API_KEY;
+          break;
+        case 'openrouter':
+          apiKey = process.env.OPENROUTER_API_KEY;
+          break;
+        case 'opencode':
+          apiKey = process.env.OPENCODE_API_KEY;
+          break;
+        case 'local':
+          // Local LLM typically doesn't require an API key
           break;
       }
     }

@@ -2,13 +2,21 @@ import { LLMProvider, LLMProviderConfig, LLMMessage, LLMOptions, LLMResponse } f
 
 export abstract class BaseProvider implements LLMProvider {
   protected config: LLMProviderConfig;
+  private validated = false;
 
   constructor(config: LLMProviderConfig) {
     this.config = config;
-    this.validateConfig();
+    // Validation is now lazy - happens on first use, not construction
   }
 
   protected abstract validateConfig(): void;
+
+  protected ensureValidated(): void {
+    if (!this.validated) {
+      this.validateConfig();
+      this.validated = true;
+    }
+  }
 
   protected handleError(error: unknown): never {
     if (error instanceof Error) {

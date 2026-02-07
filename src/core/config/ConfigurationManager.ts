@@ -17,6 +17,7 @@ import {
   LogLevel
 } from './types';
 import { validateNumberRange, validateEnum, validateStringArray, validateGlobPatterns, validatePath } from './validators';
+import { configFileManager } from './ConfigFileManager';
 
 interface ConfigurationChangeDetails {
   section: string;
@@ -46,7 +47,10 @@ class ConfigurationManager {
   initialize(context: vscode.ExtensionContext): void {
     this.context = context;
     this.beforeChangeEvent = new vscode.EventEmitter<ConfigurationChangeDetails>();
-    
+
+    const workspaceRoot = context.extensionUri.fsPath;
+    configFileManager.initialize(workspaceRoot);
+
     const changeSubscription = vscode.workspace.onDidChangeConfiguration((event) => {
       this.handleConfigurationChange(event);
     });
@@ -369,7 +373,7 @@ class ConfigurationManager {
     try {
       const config = vscode.workspace.getConfiguration('flowguard.llm');
       const provider: string | undefined = config.get('provider');
-      if (provider && ['openai', 'anthropic', 'local'].includes(provider)) {
+      if (provider && ['openai', 'anthropic', 'local', 'openrouter', 'opencode'].includes(provider)) {
         return provider as LLMProviderType;
       }
     } catch {
@@ -378,9 +382,18 @@ class ConfigurationManager {
     return undefined;
   }
 
+  private async getProviderFromConfigFile(): Promise<LLMProviderType | undefined> {
+    try {
+      const fileConfig = await configFileManager.readConfigFile();
+      return fileConfig?.provider;
+    } catch {
+      return undefined;
+    }
+  }
+
   private getProviderFromEnv(): LLMProviderType | undefined {
     const envProvider = process.env.FLOWGUARD_LLM_PROVIDER;
-    if (envProvider && ['openai', 'anthropic', 'local'].includes(envProvider)) {
+    if (envProvider && ['openai', 'anthropic', 'local', 'openrouter', 'opencode'].includes(envProvider)) {
       return envProvider as LLMProviderType;
     }
     if (process.env.OPENAI_API_KEY) {
@@ -389,11 +402,33 @@ class ConfigurationManager {
     if (process.env.ANTHROPIC_API_KEY) {
       return 'anthropic';
     }
+    if (process.env.OPENROUTER_API_KEY) {
+      return 'openrouter';
+    }
+    if (process.env.OPENCODE_API_KEY) {
+      return 'opencode';
+    }
     return undefined;
   }
 
   getResolvedProvider(): LLMProviderType {
-    return this.getProviderFromSettings() || this.getProviderFromEnv() || 'openai';
+    return this.getProviderFromSettings() || 'openai';
+  }
+
+  async getResolvedProviderAsync(): Promise<LLMProviderType> {
+    const settingsProvider = this.getProviderFromSettings();
+    if (settingsProvider) {
+      return settingsProvider;
+    }
+    const fileProvider = await this.getProviderFromConfigFile();
+    if (fileProvider) {
+      return fileProvider;
+    }
+    const envProvider = this.getProviderFromEnv();
+    if (envProvider) {
+      return envProvider;
+    }
+    return 'openai';
   }
 
   private getDefaultModel(provider: LLMProviderType | undefined): string {
@@ -402,6 +437,10 @@ class ConfigurationManager {
         return 'claude-3-5-sonnet-20241022';
       case 'local':
         return 'llama-3';
+      case 'openrouter':
+        return 'openai/gpt-4-turbo-preview';
+      case 'opencode':
+        return 'opencode-default';
       case 'openai':
       default:
         return 'gpt-4-turbo-preview';
@@ -424,6 +463,14 @@ class ConfigurationManager {
       retryAttempts: this.get('llm', 'retryAttempts') || 3,
       streamResponses: this.get('llm', 'streamResponses') || false
     };
+  }
+
+  async getLLMConfigAsync(): Promise<LLMConfiguration> {
+    const fileConfig = await configFileManager.getLLMConfigFromFile();
+    if (fileConfig) {
+      return fileConfig;
+    }
+    return this.getLLMConfig();
   }
 
   getTemplateConfig(): TemplateConfiguration {
@@ -566,7 +613,7 @@ class ConfigurationManager {
   private validateLLMValue(key: string, value: any): boolean {
     switch (key) {
       case 'provider':
-        return validateEnum(value, ['openai', 'anthropic', 'local']);
+        return validateEnum(value, ['openai', 'anthropic', 'local', 'openrouter', 'opencode']);
       case 'maxTokens':
         return validateNumberRange(value, 100, 128000);
       case 'timeout':

@@ -3,30 +3,38 @@ import { BaseProvider } from '../BaseProvider';
 import { LLMProviderConfig, LLMMessage, LLMOptions, LLMResponse } from '../types';
 
 export class AnthropicProvider extends BaseProvider {
-  private client: Anthropic;
+  private client: Anthropic | null = null;
 
   constructor(config: LLMProviderConfig) {
     super(config);
-    this.client = new Anthropic({
-      apiKey: config.apiKey,
-      timeout: config.timeout,
-    });
+    // Client is created lazily on first use
+  }
+
+  private getClient(): Anthropic {
+    if (!this.client) {
+      this.client = new Anthropic({
+        apiKey: this.config.apiKey,
+        timeout: this.config.timeout,
+      });
+    }
+    return this.client;
   }
 
   protected validateConfig(): void {
     if (!this.config.apiKey) {
-      throw new Error('Anthropic API key is required');
+      throw new Error('Anthropic API key is required. Run "FlowGuard: Enter API Key" command to configure.');
     }
   }
 
   async generateText(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse> {
+    this.ensureValidated();
     return this.retryWithBackoff(async () => {
       const model = options?.model || this.config.model || 'claude-3-5-sonnet-20241022';
       
       const systemMessage = messages.find(m => m.role === 'system');
       const userMessages = messages.filter(m => m.role !== 'system');
 
-      const response = await this.client.messages.create({
+      const response = await this.getClient().messages.create({
         model,
         max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
@@ -51,15 +59,16 @@ export class AnthropicProvider extends BaseProvider {
     _schema: object,
     options?: LLMOptions
   ): Promise<T> {
+    this.ensureValidated();
     return this.retryWithBackoff(async () => {
       const model = options?.model || this.config.model || 'claude-3-5-sonnet-20241022';
-      
+
       const structuredPrompt = [
         ...messages,
         { role: 'user', content: '\n\nRespond with valid JSON only.' },
       ];
 
-      const response = await this.client.messages.create({
+      const response = await this.getClient().messages.create({
         model,
         max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 8192,
         temperature: options?.temperature ?? this.config.temperature ?? 0.3,
@@ -72,12 +81,13 @@ export class AnthropicProvider extends BaseProvider {
   }
 
   async *streamText(messages: LLMMessage[], options?: LLMOptions): AsyncGenerator<string> {
+    this.ensureValidated();
     const model = options?.model || this.config.model || 'claude-3-5-sonnet-20241022';
-    
+
     const systemMessage = messages.find(m => m.role === 'system');
     const userMessages = messages.filter(m => m.role !== 'system');
 
-    const stream = await this.client.messages.stream({
+    const stream = await this.getClient().messages.stream({
       model,
       max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
       temperature: options?.temperature ?? this.config.temperature ?? 0.7,

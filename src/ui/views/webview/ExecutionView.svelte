@@ -7,7 +7,7 @@
   import ExecutionTimeline from './components/ExecutionTimeline.svelte';
   import LoadingSpinner from './components/LoadingSpinner.svelte';
   import ErrorMessage from './components/ErrorMessage.svelte';
-  import { getExecution, openSpec, openTicket, viewVerification, refresh, setupMessageListener } from './vscode';
+  import { getExecution, openSpec, openTicket, viewVerification, refresh, setupMessageListener } from './executionVscode';
   import type { ExecutionData } from '../types';
 
   export let execution: ExecutionData | null = null;

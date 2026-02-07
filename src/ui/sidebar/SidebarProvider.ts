@@ -195,17 +195,32 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       throw new Error('No epic initialized. Please initialize an epic first.');
     }
 
+    const title = await vscode.window.showInputBox({
+      prompt: 'Enter spec title',
+      placeHolder: 'e.g., User Login API',
+      validateInput: (value) => {
+        if (!value || value.trim().length === 0) {
+          return 'Spec title is required';
+        }
+        return null;
+      },
+    });
+
+    if (!title) {
+      return;
+    }
+
     const now = new Date();
     const spec: Spec = {
       id: uuidv4(),
       epicId: epicMetadata.epicId,
-      title: 'New Spec',
+      title,
       status: 'draft' as SpecStatus,
       createdAt: now,
       updatedAt: now,
       author: 'FlowGuard',
       tags: [],
-      content: '# New Spec\n\nDescribe your specification here.'
+      content: `# ${title}\n\n## Overview\n\nDescribe your specification here.\n\n## Requirements\n\n- \n- \n\n## Implementation Notes\n\n`,
     };
 
     await this._storage.saveSpec(spec);

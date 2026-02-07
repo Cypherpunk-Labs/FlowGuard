@@ -3,28 +3,36 @@ import { BaseProvider } from '../BaseProvider';
 import { LLMProviderConfig, LLMMessage, LLMOptions, LLMResponse } from '../types';
 
 export class OpenAIProvider extends BaseProvider {
-  private client: OpenAI;
+  private client: OpenAI | null = null;
 
   constructor(config: LLMProviderConfig) {
     super(config);
-    this.client = new OpenAI({
-      apiKey: config.apiKey,
-      baseURL: config.baseUrl,
-      timeout: config.timeout,
-    });
+    // Client is created lazily on first use
+  }
+
+  private getClient(): OpenAI {
+    if (!this.client) {
+      this.client = new OpenAI({
+        apiKey: this.config.apiKey,
+        baseURL: this.config.baseUrl,
+        timeout: this.config.timeout,
+      });
+    }
+    return this.client;
   }
 
   protected validateConfig(): void {
     if (!this.config.apiKey) {
-      throw new Error('OpenAI API key is required');
+      throw new Error('OpenAI API key is required. Run "FlowGuard: Enter API Key" command to configure.');
     }
   }
 
   async generateText(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse> {
+    this.ensureValidated();
     return this.retryWithBackoff(async () => {
       const model = options?.model || this.config.model || 'gpt-4-turbo-preview';
       
-      const response = await this.client.chat.completions.create({
+      const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
@@ -54,10 +62,11 @@ export class OpenAIProvider extends BaseProvider {
     _schema: object,
     options?: LLMOptions
   ): Promise<T> {
+    this.ensureValidated();
     return this.retryWithBackoff(async () => {
       const model = options?.model || this.config.model || 'gpt-4-turbo-preview';
       
-      const response = await this.client.chat.completions.create({
+      const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: options?.temperature ?? this.config.temperature ?? 0.3,
@@ -76,9 +85,10 @@ export class OpenAIProvider extends BaseProvider {
   }
 
   async *streamText(messages: LLMMessage[], options?: LLMOptions): AsyncGenerator<string> {
+    this.ensureValidated();
     const model = options?.model || this.config.model || 'gpt-4-turbo-preview';
     
-    const stream = await this.client.chat.completions.create({
+    const stream = await this.getClient().chat.completions.create({
       model,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
       temperature: options?.temperature ?? this.config.temperature ?? 0.7,

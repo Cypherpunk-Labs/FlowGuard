@@ -77,9 +77,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const generalConfig = configurationManager.getGeneralConfig();
     setLogLevel(generalConfig.logLevel);
     if (generalConfig.showWelcomeOnStartup) {
-      const outputChannel = vscode.window.createOutputChannel('FlowGuard');
-      outputChannel.appendLine('FlowGuard initialized successfully');
-      outputChannel.show();
+      const { log, show } = await import('./utils/logger');
+      log('FlowGuard initialized successfully');
+      show();
     }
 
     storage = new ArtifactStorage(workspaceRoot);
@@ -87,16 +87,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     epicMetadataManager = new EpicMetadataManager(workspaceRoot);
 
-    const llmConfig = configurationManager.getLLMConfig();
+    codebaseExplorer = new CodebaseExplorer(workspaceRoot);
+    gitHelper = new GitHelper(workspaceRoot);
+    referenceResolver = new ReferenceResolver(storage, workspaceRoot);
+
+    // Initialize LLM provider - allow activation without API key for basic functionality
+    const llmConfig = await configurationManager.getLLMConfigAsync();
     const apiKey = await secureStorage.getApiKeyWithFallback(llmConfig.provider) || '';
     const providerConfig = { ...llmConfig, apiKey };
     const provider = createProvider(llmConfig.provider, providerConfig);
 
     clarificationEngine = new ClarificationEngine(provider);
-    codebaseExplorer = new CodebaseExplorer(workspaceRoot);
     specGenerator = new SpecGenerator(provider, codebaseExplorer, storage);
-    gitHelper = new GitHelper(workspaceRoot);
-    referenceResolver = new ReferenceResolver(storage, workspaceRoot);
+
     workflowOrchestrator = new WorkflowOrchestrator(
       provider,
       codebaseExplorer,

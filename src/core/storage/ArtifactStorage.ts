@@ -142,19 +142,23 @@ export class ArtifactStorage {
 
   async saveTicket(ticket: Ticket): Promise<void> {
     const filePath = this.getTicketPath(ticket.id);
-    const frontmatter = {
+    const frontmatter: Record<string, unknown> = {
       id: ticket.id,
       epicId: ticket.epicId,
       specId: ticket.specId,
       title: ticket.title,
       status: ticket.status,
       priority: ticket.priority,
-      assignee: ticket.assignee,
-      estimatedEffort: ticket.estimatedEffort,
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString(),
       tags: ticket.tags,
     };
+    if (ticket.assignee !== undefined) {
+      frontmatter.assignee = ticket.assignee;
+    }
+    if (ticket.estimatedEffort !== undefined) {
+      frontmatter.estimatedEffort = ticket.estimatedEffort;
+    }
     const markdown = serializeFrontmatter(frontmatter, ticket.content);
     await writeFile(filePath, markdown);
     log(`Saved ticket: ${ticket.id}`);
@@ -218,7 +222,7 @@ export class ArtifactStorage {
 
   async saveExecution(execution: Execution): Promise<void> {
     const filePath = this.getExecutionPath(execution.id);
-    const frontmatter = {
+    const frontmatter: Record<string, unknown> = {
       id: execution.id,
       epicId: execution.epicId,
       specIds: execution.specIds,
@@ -227,9 +231,13 @@ export class ArtifactStorage {
       handoffPrompt: execution.handoffPrompt,
       status: execution.status,
       startedAt: execution.startedAt.toISOString(),
-      completedAt: execution.completedAt?.toISOString(),
-      results: execution.results,
     };
+    if (execution.completedAt !== undefined) {
+      frontmatter.completedAt = execution.completedAt.toISOString();
+    }
+    if (execution.results !== undefined) {
+      frontmatter.results = execution.results;
+    }
     const markdown = serializeFrontmatter(frontmatter, '');
     await writeFile(filePath, markdown);
     log(`Saved execution: ${execution.id}`);

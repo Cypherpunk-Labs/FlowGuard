@@ -23,7 +23,9 @@
           "enum": [
             "openai",
             "anthropic",
-            "local"
+            "local",
+            "openrouter",
+            "opencode"
           ],
           "default": "openai",
           "description": "LLM provider to use. Can be overridden by FLOWGUARD_LLM_PROVIDER environment variable."
@@ -286,7 +288,7 @@
     "commands": [
       {
         "command": "flowguard.createSpec",
-        "title": "New Spec",
+        "title": "FlowGuard: Create Specification",
         "icon": "$(add)"
       },
       {
@@ -606,6 +608,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
     "gray-matter": "^4.0.3",
+    "mermaid": "^10.9.0",
     "openai": "^4.0.0",
     "simple-git": "^3.19.0",
     "svelte": "^4.0.0",

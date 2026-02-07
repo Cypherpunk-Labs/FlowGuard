@@ -1,6 +1,7 @@
 import { LLMProviderConfig, LLMProviderType } from './types';
 import { configurationManager } from '../core/config/ConfigurationManager';
 import { secureStorage } from '../core/config/SecureStorage';
+import { configFileManager } from '../core/config/ConfigFileManager';
 
 export interface LLMConfiguration {
   provider: LLMProviderType;
@@ -12,8 +13,9 @@ export interface LLMConfiguration {
 }
 
 export async function getLLMConfig(): Promise<LLMProviderConfig> {
-  const config = configurationManager.getLLMConfig();
-  const apiKey = await secureStorage.getApiKeyWithFallback(config.provider) || '';
+  const config = await configurationManager.getLLMConfigAsync();
+  const fileApiKey = await configFileManager.getApiKeyFromFile();
+  const apiKey = fileApiKey || await secureStorage.getApiKeyWithFallback(config.provider) || '';
   
   return {
     apiKey,

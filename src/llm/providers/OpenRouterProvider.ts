@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { BaseProvider } from '../BaseProvider';
 import { LLMProviderConfig, LLMMessage, LLMOptions, LLMResponse } from '../types';
 
-export class LocalLLMProvider extends BaseProvider {
+export class OpenRouterProvider extends BaseProvider {
   private client: OpenAI | null = null;
 
   constructor(config: LLMProviderConfig) {
@@ -13,25 +13,29 @@ export class LocalLLMProvider extends BaseProvider {
   private getClient(): OpenAI {
     if (!this.client) {
       this.client = new OpenAI({
-        apiKey: this.config.apiKey || 'local',
-        baseURL: this.config.baseUrl,
+        apiKey: this.config.apiKey,
+        baseURL: this.config.baseUrl || 'https://openrouter.ai/api/v1',
         timeout: this.config.timeout,
+        defaultHeaders: {
+          'HTTP-Referer': 'https://github.com/mkemp/flowguard',
+          'X-Title': 'FlowGuard',
+        },
       });
     }
     return this.client;
   }
 
   protected validateConfig(): void {
-    if (!this.config.baseUrl) {
-      throw new Error('Local LLM provider requires a base URL. Set flowguard.llm.baseUrl in settings.');
+    if (!this.config.apiKey) {
+      throw new Error('OpenRouter API key is required. Get one at https://openrouter.ai/keys and run "FlowGuard: Enter API Key" command to configure.');
     }
   }
 
   async generateText(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse> {
     this.ensureValidated();
     return this.retryWithBackoff(async () => {
-      const model = options?.model || this.config.model || 'llama-3';
-      
+      const model = options?.model || this.config.model || 'openai/gpt-4-turbo-preview';
+
       const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
@@ -42,8 +46,9 @@ export class LocalLLMProvider extends BaseProvider {
 
       const choice = response.choices[0];
       if (!choice) {
-        throw new Error('No response choices received from local LLM');
+        throw new Error('No response choices received from OpenRouter');
       }
+
       return {
         text: choice.message?.content || '',
         usage: {
@@ -63,8 +68,8 @@ export class LocalLLMProvider extends BaseProvider {
   ): Promise<T> {
     this.ensureValidated();
     return this.retryWithBackoff(async () => {
-      const model = options?.model || this.config.model || 'llama-3';
-      
+      const model = options?.model || this.config.model || 'openai/gpt-4-turbo-preview';
+
       const response = await this.getClient().chat.completions.create({
         model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
@@ -73,15 +78,20 @@ export class LocalLLMProvider extends BaseProvider {
         response_format: { type: 'json_object' },
       });
 
-      const content = response.choices[0]?.message?.content || '';
+      const choice = response.choices[0];
+      if (!choice) {
+        throw new Error('No response choices received from OpenRouter');
+      }
+
+      const content = choice.message?.content || '';
       return JSON.parse(content) as T;
     });
   }
 
   async *streamText(messages: LLMMessage[], options?: LLMOptions): AsyncGenerator<string> {
     this.ensureValidated();
-    const model = options?.model || this.config.model || 'llama-3';
-    
+    const model = options?.model || this.config.model || 'openai/gpt-4-turbo-preview';
+
     const stream = await this.getClient().chat.completions.create({
       model,
       messages: messages.map(m => ({ role: m.role, content: m.content })),

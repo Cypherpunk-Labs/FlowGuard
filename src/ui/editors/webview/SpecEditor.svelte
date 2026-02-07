@@ -48,6 +48,7 @@
   ];
 
   let vscodeApi: any = null;
+  let isLoading = true;
 
   onMount(() => {
     vscodeApi = window.acquireVsCodeApi();
@@ -64,6 +65,7 @@
           spec = message.data;
           isDirty = false;
           isSaving = false;
+          isLoading = false;
           break;
         case 'saveSuccess':
           isDirty = false;
@@ -288,7 +290,11 @@
     {/if}
   {:else}
     <div class="loading">
-      <span>Loading spec...</span>
+      {#if isLoading}
+        <span>Loading spec...</span>
+      {:else}
+        <span>No spec data available</span>
+      {/if}
     </div>
   {/if}
 </div>
