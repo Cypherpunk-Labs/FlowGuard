@@ -1,0 +1,17 @@
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Command Palette
+    participant S as SpecManager
+    participant T as TicketManager
+    participant F as FileSystem
+    participant V as Sidebar
+
+    U->>C: flowguard.generateTickets
+    C->>S: getSpecDetails()
+    S->>T: createTicketsFromSpec()
+    T->>F: create ticket files
+    T->>F: update spec metadata
+    T->>V: refresh view
+    V-->>U: show new tickets in sidebar
+```

@@ -1,0 +1,21 @@
+```mermaid
+graph TB
+    A[Plugin Manager] --> B[Plugin Registry]
+    A --> C[Plugin Loader]
+    A --> D[Plugin Validator]
+    
+    C --> E[Verification Rule Plugins]
+    C --> F[Agent Integration Plugins]
+    C --> G[Template Customization Plugins]
+    C --> H[UI Extension Plugins]
+    
+    E --> I[Rule Executor]
+    F --> J[Agent Interface]
+    G --> K[Template Engine]
+    H --> L[WebView Components]
+    
+    I --> M[Verification Engine]
+    J --> N[Handoff Generator]
+    K --> O[Template Renderer]
+    L --> P[UI Renderer]
+```

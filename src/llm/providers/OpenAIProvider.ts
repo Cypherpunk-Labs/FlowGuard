@@ -33,8 +33,12 @@ export class OpenAIProvider extends BaseProvider {
       });
 
       const choice = response.choices[0];
+      if (!choice) {
+        throw new Error('No response choices received from OpenAI');
+      }
+      
       return {
-        text: choice.message.content || '',
+        text: choice.message?.content || '',
         usage: {
           promptTokens: response.usage?.prompt_tokens || 0,
           completionTokens: response.usage?.completion_tokens || 0,
@@ -61,7 +65,12 @@ export class OpenAIProvider extends BaseProvider {
         response_format: { type: 'json_object' },
       });
 
-      const content = response.choices[0]?.message?.content || '';
+      const choice = response.choices[0];
+      if (!choice) {
+        throw new Error('No response choices received from OpenAI');
+      }
+      
+      const content = choice.message?.content || '';
       return JSON.parse(content) as T;
     });
   }

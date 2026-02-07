@@ -1,0 +1,9 @@
+This is a placeholder for the "Creating first epic" animated GIF.
+
+The animation should demonstrate:
+1. Opening the command palette
+2. Running the "FlowGuard: Create Epic" command
+3. Filling in epic details in the creation form
+4. Viewing the new epic in the sidebar
+5. Creating a spec within the epic
+6. Generating tickets from the spec

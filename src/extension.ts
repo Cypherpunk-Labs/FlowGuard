@@ -26,6 +26,10 @@ import { registerCommands, CommandContext } from './commands';
 import { setLogLevel } from './utils/logger';
 import { PluginManager } from './plugins/PluginManager';
 import { PluginContextImpl } from './plugins/PluginContext';
+import { TutorialManager } from './tutorials/TutorialManager';
+import { FirstEpicTutorial } from './tutorials/tutorials/FirstEpicTutorial';
+import { VerificationTutorial } from './tutorials/tutorials/VerificationTutorial';
+import { HandoffTutorial } from './tutorials/tutorials/HandoffTutorial';
 
 let extensionPath: string;
 let storage: ArtifactStorage | null = null;
@@ -159,6 +163,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       console.error('Failed to load plugins:', error);
       vscode.window.showWarningMessage('Some plugins failed to load. Check the FlowGuard output channel for details.');
     }
+    
+    // Initialize and register tutorials
+    const tutorialManager = TutorialManager.getInstance();
+    tutorialManager.initialize(context);
+    if (FirstEpicTutorial.setArtifactStorage) {
+      FirstEpicTutorial.setArtifactStorage(storage!, epicMetadataManager!);
+    }
+    if (HandoffTutorial.setArtifactStorage) {
+      HandoffTutorial.setArtifactStorage(storage!);
+    }
+    if (VerificationTutorial.setArtifactStorage) {
+      VerificationTutorial.setArtifactStorage(storage!, gitHelper!);
+    }
+    tutorialManager.registerTutorial(FirstEpicTutorial);
+    tutorialManager.registerTutorial(HandoffTutorial);
+    tutorialManager.registerTutorial(VerificationTutorial);
     
     handoffGenerator = new HandoffGenerator(
       storage,

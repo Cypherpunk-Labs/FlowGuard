@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard command palette screenshot.
+
+The command palette shows:
+- FlowGuard namespace with all commands
+- Create epic, spec, and ticket commands
+- Verification and handoff commands
+- Configuration and settings commands
+- Tutorial and help commands
+- Plugin management commands
+- Keyboard shortcuts for each command

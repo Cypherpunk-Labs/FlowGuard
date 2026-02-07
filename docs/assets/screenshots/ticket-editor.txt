@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard ticket editor screenshot.
+
+The ticket editor shows:
+- YAML frontmatter with ticket metadata
+- Breakdown section with implementation steps
+- Acceptance criteria checklist
+- Linked spec reference
+- Status workflow controls
+- Reference panel showing related executions
+- Command integration for ticket actions

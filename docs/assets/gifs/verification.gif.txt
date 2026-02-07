@@ -1,0 +1,9 @@
+This is a placeholder for the "Running verification on code changes" animated GIF.
+
+The animation should demonstrate:
+1. Making code changes in the editor
+2. Opening the verification view
+3. Selecting a diff source (git changes, GitHub PR, etc.)
+4. Running the verification process
+5. Reviewing identified issues
+6. Applying auto-fixes where available

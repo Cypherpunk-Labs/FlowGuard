@@ -36,6 +36,15 @@ export class EpicMetadataManager {
     return metadata;
   }
 
+  async epicExists(): Promise<boolean> {
+    try {
+      const metadataPath = this.getEpicMetadataPath();
+      return await fileExists(metadataPath);
+    } catch (error) {
+      return false;
+    }
+  }
+
   async saveEpicMetadata(metadata: EpicMetadata): Promise<void> {
     const metadataPath = this.getEpicMetadataPath();
     await writeJson(metadataPath, metadata);

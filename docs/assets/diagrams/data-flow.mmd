@@ -1,0 +1,21 @@
+```mermaid
+flowchart LR
+    A[User Input] --> B[Command Handler]
+    B --> C[Business Logic]
+    C --> D[Data Storage]
+    C --> E[External APIs]
+    D --> F[UI Components]
+    E --> F
+    F --> A
+    
+    subgraph VSCodeExtension
+        B
+        C
+        F
+    end
+    
+    subgraph ExternalSystems
+        D
+        E
+    end
+```

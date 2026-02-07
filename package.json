@@ -399,6 +399,10 @@
         "command": "flowguard.reloadAllPlugins",
         "title": "FlowGuard: Reload All Plugins",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "flowguard.startTutorial",
+        "title": "FlowGuard: Start Tutorial"
       }
     ],
     "menus": {
@@ -593,7 +597,11 @@
     "test:performance": "npm run compile:tests && npm run test:integration -- --grep Performance",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:ci": "npm run test:unit && npm run test:integration",
-    "package": "npm run compile && npx vsce package"
+    "package": "npm run compile && npx vsce package",
+    "docs:lint": "markdownlint docs/**/*.md",
+    "docs:validate-links": "node scripts/validate-docs-links.js",
+    "docs:test": "node scripts/test-documentation.js",
+    "docs:test:all": "npm run docs:lint && npm run docs:validate-links && npm run docs:test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
@@ -623,6 +631,7 @@
     "happy-dom": "^20.5.0",
     "html-webpack-plugin": "^5.0.0",
     "jest": "^30.2.0",
+    "markdownlint-cli": "^0.47.0",
     "mocha": "^11.7.5",
     "playwright": "^1.58.2",
     "style-loader": "^3.0.0",

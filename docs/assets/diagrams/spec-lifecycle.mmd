@@ -1,0 +1,17 @@
+```mermaid
+flowchart TD
+    A[Spec Created] --> B[Spec in Draft]
+    B --> C{Ready for Review?}
+    C -->|No| B
+    C -->|Yes| D[Spec in Review]
+    D --> E{Review Outcome}
+    E -->|Approved| F[Spec Approved]
+    E -->|Changes Requested| G[Spec Revisions]
+    G --> H[Update Spec]
+    H --> D
+    F --> I{Implementation Ready?}
+    I -->|No| F
+    I -->|Yes| J[Spec Implemented]
+    J --> K[Generate Tickets]
+    K --> L[Spec Complete]
+```

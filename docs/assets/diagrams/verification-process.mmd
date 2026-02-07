@@ -1,0 +1,19 @@
+```mermaid
+flowchart TD
+    A[Start Verification] --> B[Select Diff Source]
+    B --> C{Diff Type?}
+    C -->|Git Diff| D[Analyze Git Changes]
+    C -->|GitHub PR| E[Fetch PR Details]
+    C -->|GitLab MR| F[Fetch MR Details]
+    D --> G[Extract Changed Files]
+    E --> G
+    F --> G
+    G --> H[Load Relevant Specs]
+    H --> I[Run Verification Rules]
+    I --> J{Issues Found?}
+    J -->|Yes| K[Rate Issues by Severity]
+    J -->|No| L[No Issues Report]
+    K --> M[Generate Verification Report]
+    L --> M
+    M --> N[Display in Verification View]
+```

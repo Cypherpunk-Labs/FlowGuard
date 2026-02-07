@@ -1,0 +1,9 @@
+This is a placeholder for the "Generating and using agent handoffs" animated GIF.
+
+The animation should demonstrate:
+1. Selecting a spec or ticket for handoff
+2. Choosing an agent template
+3. Generating the handoff execution file
+4. Previewing the generated implementation plan
+5. Approving and executing the handoff
+6. Tracking execution progress

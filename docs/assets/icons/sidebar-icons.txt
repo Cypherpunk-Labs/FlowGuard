@@ -1,0 +1,9 @@
+This is a placeholder for the FlowGuard sidebar icons.
+
+Icons needed for:
+- Epic view (hierarchy/tree representation)
+- Spec view (document with flow lines)
+- Ticket view (task/checklist representation)
+- Verification view (magnifying glass over code)
+- Execution view (play/execute symbol)
+- Settings view (gear/cogwheel)

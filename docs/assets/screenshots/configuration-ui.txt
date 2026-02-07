@@ -1,0 +1,10 @@
+This is a placeholder for the FlowGuard configuration UI screenshot.
+
+The configuration UI shows:
+- Provider settings (API keys, model selection)
+- Template customization options
+- Codebase exploration settings
+- Verification rule configurations
+- Plugin management interface
+- Keyboard shortcut customization
+- Import/export configuration options

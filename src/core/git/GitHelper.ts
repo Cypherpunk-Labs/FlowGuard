@@ -88,8 +88,13 @@ export class GitHelper {
 
   async getDiff(filePath?: string): Promise<string> {
     try {
-      const diff = await this.git.diff(filePath);
-      return diff;
+      if (filePath) {
+        const diff = await this.git.diff([filePath]);
+        return diff;
+      } else {
+        const diff = await this.git.diff();
+        return diff;
+      }
     } catch (err) {
       throw new GitError(
         `Failed to get diff: ${err instanceof Error ? err.message : String(err)}`,

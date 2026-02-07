@@ -1,0 +1,9 @@
+This is a placeholder for the "Configuring LLM providers and API keys" animated GIF.
+
+The animation should demonstrate:
+1. Opening the FlowGuard settings
+2. Selecting an LLM provider
+3. Entering API key information
+4. Testing the connection
+5. Selecting a default model
+6. Saving the configuration

@@ -1,0 +1,8 @@
+This is a placeholder for the FlowGuard status icons.
+
+Icons needed for:
+- Draft (pencil/edit symbol)
+- Planning (calendar/planning symbol)
+- In Progress (play/active symbol)
+- Completed (checkmark/done symbol)
+- Archived (archive box symbol)

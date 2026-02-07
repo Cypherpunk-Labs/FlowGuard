@@ -38,6 +38,7 @@ import {
   uninstallPluginCommand,
   reloadAllPluginsCommand,
 } from './pluginCommands';
+import { startTutorialCommand } from './tutorialCommands';
 
 export interface CommandHandler {
   (context: CommandContext, ...args: unknown[]): Promise<unknown>;
@@ -74,6 +75,7 @@ export function registerCommands(
     { id: 'flowguard.installPlugin', handler: installPluginCommand },
     { id: 'flowguard.uninstallPlugin', handler: uninstallPluginCommand },
     { id: 'flowguard.reloadAllPlugins', handler: reloadAllPluginsCommand },
+    { id: 'flowguard.startTutorial', handler: startTutorialCommand },
   ];
 
   commands.forEach(({ id, handler }) => {
