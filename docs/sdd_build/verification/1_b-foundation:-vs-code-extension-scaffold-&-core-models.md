@@ -35,5 +35,5 @@ Export `normalizeEpic(data: unknown): Epic`, etc., from `src/core/models/`.
 
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/core/parsers/frontmatter.ts
+- {WORKSPACE}/src/core/parsers/frontmatter.ts
 ---

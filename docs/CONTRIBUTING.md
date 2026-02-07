@@ -1,6 +1,14 @@
-# Contributing to FlowGuard Documentation
+# Contributing to FlowGuard
 
-Thank you for your interest in improving FlowGuard's documentation! This guide will help you contribute effectively while maintaining consistency across all documentation.
+Thank you for your interest in contributing to FlowGuard!
+
+## Code Contributions
+
+For setting up your development environment, building, testing, and debugging FlowGuard locally, see the [Development Guide](DEVELOPMENT.md).
+
+## Documentation Contributions
+
+This section will help you contribute to FlowGuard's documentation effectively while maintaining consistency across all documentation.
 
 ## Documentation Structure
 

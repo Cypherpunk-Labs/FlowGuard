@@ -30,9 +30,9 @@ Import models from the index file:
 import { Epic, Spec, Ticket } from './core/models';
 ```
 
-## Traycer Pattern
+## model-app Pattern
 
-All artifacts follow the Traycer pattern:
+All artifacts follow the model-app pattern:
 - YAML frontmatter for structured metadata
 - Markdown body for human-readable content
 - UUID v4 for unique identification

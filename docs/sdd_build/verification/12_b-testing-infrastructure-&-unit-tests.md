@@ -6,8 +6,8 @@ I have the following verification comments after thorough review and exploration
 
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/package.json
-- /Users/mkemp/repos/tmp-traycer-cp/vitest.config.ts
+- {WORKSPACE}/package.json
+- {WORKSPACE}/vitest.config.ts
 ---
 ## Comment 2: Only subset of planned unit tests implemented; major components missing
 
@@ -32,7 +32,7 @@ I have the following verification comments after thorough review and exploration
 In `tests/unit/storage/`, create `ArtifactStorage.test.ts`: mock `fileSystem.ts` functions, test `saveSpec()` serializes valid frontmatter/markdown, `loadSpec()` parses/validates, `listSpecs(epicId)` filters correctly, error cases (ValidationError/NotFoundError). Repeat pattern for Ticket/Execution/Verification/Template. Reference `fileSystem.test.ts` for FS mocking. In `tests/unit/planning/`, add `SpecGenerator.test.ts`: mock LLM responses with structured spec data, assert frontmatter/content/diagrams valid via `validateSpec()`. Build incrementally, run `vitest tests/unit/storage` to validate each module.
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/tests/
-- /Users/mkemp/repos/tmp-traycer-cp/src/core/storage/ArtifactStorage.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/planning/SpecGenerator.ts
+- {WORKSPACE}/tests/
+- {WORKSPACE}/src/core/storage/ArtifactStorage.ts
+- {WORKSPACE}/src/planning/SpecGenerator.ts
 ---

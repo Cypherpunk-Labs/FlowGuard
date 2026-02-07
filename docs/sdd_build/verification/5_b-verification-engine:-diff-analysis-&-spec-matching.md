@@ -70,6 +70,6 @@ In `src/verification/VerificationEngine.ts`, replace separate `allMatches`/`allR
 Update `src/verification/FeedbackGenerator.ts` `generateFeedback()` to accept `Array<{match: SpecMatchResult, ratings: SeverityRating[]}>`, loop over items, pair `deviation[j]` with `ratings[j]` per match.
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/verification/VerificationEngine.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/verification/FeedbackGenerator.ts
+- {WORKSPACE}/src/verification/VerificationEngine.ts
+- {WORKSPACE}/src/verification/FeedbackGenerator.ts
 ---

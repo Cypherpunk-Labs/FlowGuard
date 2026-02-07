@@ -30,9 +30,9 @@ I have the following verification comments after thorough review and exploration
    - Tested across tutorials: `FirstEpicTutorial` epic/spec/ticket creation properly gates progression
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/TutorialManager.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/FirstEpicTutorial.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/VerificationTutorial.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/HandoffTutorial.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/extension.ts
+- {WORKSPACE}/src/tutorials/TutorialManager.ts
+- {WORKSPACE}/src/tutorials/tutorials/FirstEpicTutorial.ts
+- {WORKSPACE}/src/tutorials/tutorials/VerificationTutorial.ts
+- {WORKSPACE}/src/tutorials/tutorials/HandoffTutorial.ts
+- {WORKSPACE}/src/extension.ts
 ---

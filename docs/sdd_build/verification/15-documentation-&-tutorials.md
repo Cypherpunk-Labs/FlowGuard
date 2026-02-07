@@ -15,12 +15,12 @@ All planned tutorial flows have been implemented:
 - All tutorials are discoverable via the command palette
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/extension.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/commands/tutorialCommands.ts
-- /Users/mkemp/repos/tmp-traycer-cp/docs/SUMMARY.md
-- /Users/mkemp/repos/tmp-traycer-cp/docs/tutorials/README.md
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/FirstEpicTutorial.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/VerificationTutorial.ts
+- {WORKSPACE}/src/extension.ts
+- {WORKSPACE}/src/commands/tutorialCommands.ts
+- {WORKSPACE}/docs/SUMMARY.md
+- {WORKSPACE}/docs/tutorials/README.md
+- {WORKSPACE}/src/tutorials/tutorials/FirstEpicTutorial.ts
+- {WORKSPACE}/src/tutorials/tutorials/VerificationTutorial.ts
 ---
 ## Comment 2: Tutorial step validations are stubbed to always succeed, so steps complete without user action.
 
@@ -31,8 +31,8 @@ Implemented real validation logic for all tutorial steps:
 - Only mark steps complete when their validation passes by querying actual system state
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/FirstEpicTutorial.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/tutorials/VerificationTutorial.ts
+- {WORKSPACE}/src/tutorials/tutorials/FirstEpicTutorial.ts
+- {WORKSPACE}/src/tutorials/tutorials/VerificationTutorial.ts
 ---
 ## Comment 3: Tutorial progress is stored in VS Code configuration, polluting user settings and risking write failures.
 
@@ -43,5 +43,5 @@ Fixed tutorial progress storage:
 - Progress is now stored per workspace without polluting user settings
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/tutorials/TutorialManager.ts
+- {WORKSPACE}/src/tutorials/TutorialManager.ts
 ---

@@ -44,9 +44,9 @@ In `src/planning/diagrams/MermaidGenerator.ts`, add `static setPluginDiagramType
 In `src/extension.ts` ~line 134 after agent integrations: `TemplateEngine.setPluginTemplates(pluginManager.getTemplates()); MermaidGenerator.setPluginDiagramTypes(pluginManager.getDiagramTypes());`.
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/extension.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/handoff/TemplateEngine.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/planning/templates/TicketTemplates.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/planning/diagrams/MermaidGenerator.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/plugins/PluginManager.ts
+- {WORKSPACE}/src/extension.ts
+- {WORKSPACE}/src/handoff/TemplateEngine.ts
+- {WORKSPACE}/src/planning/templates/TicketTemplates.ts
+- {WORKSPACE}/src/planning/diagrams/MermaidGenerator.ts
+- {WORKSPACE}/src/plugins/PluginManager.ts
 ---

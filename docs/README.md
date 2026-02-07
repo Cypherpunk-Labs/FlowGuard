@@ -30,12 +30,18 @@ Technical specifications and detailed documentation:
 - [Architecture](reference/architecture.md) - System architecture documentation
 
 ### ⚡ Advanced Topics
+
 For power users and developers extending FlowGuard:
 - [Plugin Development](advanced/plugin-development.md) - Creating custom plugins
 - [Custom Verification Rules](advanced/custom-verification-rules.md) - Writing verification rules
 - [LLM Integration](advanced/llm-integration.md) - Integrating language models
 - [Custom Agents](advanced/custom-agents.md) - Creating agent templates
 - [Extending UI](advanced/extending-ui.md) - Customizing the user interface
+
+### 🛠️ Development
+
+For developers contributing to FlowGuard itself:
+- [Development Guide](DEVELOPMENT.md) - Building, testing, and debugging locally
 
 ### 🎓 Tutorials
 Interactive learning experiences:

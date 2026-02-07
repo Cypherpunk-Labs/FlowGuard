@@ -2,7 +2,7 @@ I have created the following plan after thorough exploration and analysis of the
 
 ## Observations
 
-The workspace is currently empty except for documentation files, making this a greenfield VS Code extension project. The specs define a local-first artifact management system following Traycer patterns with YAML frontmatter + Markdown content. The architecture separates concerns between specs (what/why), tickets (how), executions (tracking), and verifications (quality). Core models include Epic, Spec, Ticket, Execution, and Verification with structured TypeScript interfaces already defined in the specifications.
+The workspace is currently empty except for documentation files, making this a greenfield VS Code extension project. The specs define a local-first artifact management system following model-app patterns with YAML frontmatter + Markdown content. The architecture separates concerns between specs (what/why), tickets (how), executions (tracking), and verifications (quality). Core models include Epic, Spec, Ticket, Execution, and Verification with structured TypeScript interfaces already defined in the specifications.
 
 ## Approach
 
@@ -264,7 +264,7 @@ src/
 - Document the purpose of each model
 - Explain the relationship between Epic, Spec, Ticket, Execution, Verification
 - Provide examples of each interface usage
-- Reference the Traycer pattern for artifact structure
+- Reference the model-app pattern for artifact structure
 
 **Update `file:README.md`**:
 - Add "Development" section with build instructions

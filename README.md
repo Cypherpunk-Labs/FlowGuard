@@ -89,6 +89,8 @@ npm run watch
 npm run test
 ```
 
+For detailed development instructions including how to build, test, and debug locally without publishing to the marketplace, see the [Development Guide](docs/DEVELOPMENT.md).
+
 ## Architecture
 
 See [docs/plan/1-foundation:-vs-code-extension-scaffold-&-core-models.md](docs/plan/1-foundation:-vs-code-extension-scaffold-&-core-models.md) for the full architecture documentation.

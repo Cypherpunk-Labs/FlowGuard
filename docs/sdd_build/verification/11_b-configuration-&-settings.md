@@ -45,6 +45,6 @@ I have the following verification comments after thorough review and exploration
 In `src/core/config/ConfigurationManager.ts`, before `await config.update(...)` in `setInVSCode`, capture `oldConfig = this.getAll()` and emit via new `beforeChange` event with `{oldConfig, section, key}`. In `ConfigurationWatcher.handleConfigurationChange`, extract changed sub-keys by testing `event.affectsConfiguration('flowguard.general.logLevel')` for known keys. Update `notifyWatchers` to pass `{newValue, oldValueFromCache, changedSection, changedKeys}` to filtered handlers. Fix `matchesPattern(pattern, changedSection, changedKeys)` using globstar matching (e.g., minimatch lib or simple split/regex). Update all built-in `registerWatcher` calls and handlers to use new params. Add unit test simulating config change verifying old/new differ.
 
 ### Referred Files
-- /Users/mkemp/repos/tmp-traycer-cp/src/core/config/ConfigurationWatcher.ts
-- /Users/mkemp/repos/tmp-traycer-cp/src/core/config/ConfigurationManager.ts
+- {WORKSPACE}/src/core/config/ConfigurationWatcher.ts
+- {WORKSPACE}/src/core/config/ConfigurationManager.ts
 ---
