@@ -6,7 +6,7 @@
   import StatusWorkflow from './components/StatusWorkflow.svelte';
   import PreviewPanel from './components/PreviewPanel.svelte';
   import DiagramInserter from './components/DiagramInserter.svelte';
-  import { debounce } from '../../utils/debounce';
+  import { debounce } from '../../../utils/debounce';
   import type { SpecEditorData, ToolbarAction, FieldSchema } from '../types';
   import type { SpecStatus } from '../../../core/models/Spec';
 

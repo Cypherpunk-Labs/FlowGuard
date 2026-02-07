@@ -9,7 +9,7 @@
   import AcceptanceCriteriaEditor from './components/AcceptanceCriteriaEditor.svelte';
   import ImplementationStepsEditor from './components/ImplementationStepsEditor.svelte';
   import TestingChecklist from './components/TestingChecklist.svelte';
-  import { debounce } from '../../utils/debounce';
+  import { debounce } from '../../../utils/debounce';
   import type { TicketEditorData, ToolbarAction, FieldSchema } from '../types';
   import type { TicketStatus, Priority } from '../../../core/models/Ticket';
 

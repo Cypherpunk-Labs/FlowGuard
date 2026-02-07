@@ -36,8 +36,8 @@
         <div class="marker-dot {hasCompleted ? 'completed' : 'pending'}"></div>
         <div class="marker-info">
           <span class="marker-label">{isCompleted ? 'Completed' : 'In Progress'}</span>
-          {#if hasCompleted}
-            <span class="marker-time">{formatTime(completedAt!)}</span>
+          {#if hasCompleted && completedAt}
+            <span class="marker-time">{formatTime(completedAt)}</span>
           {:else}
             <span class="marker-time">...</span>
           {/if}
